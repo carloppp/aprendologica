@@ -3,13 +3,25 @@
 Creado: 7 de septiembre de 2026. Reencuadrado: 8 de septiembre de 2026.
 Base: `DECISIONES_FASE_0.md`, `PLAN_DESARROLLO.md`, `Avance_solicitado_Caza_Estelar.docx`.
 
-## Qué es (y qué no es) el avance de septiembre
+## Qué es el avance de septiembre
 
-**Septiembre no implementa la aplicación.** El avance del mes es un **documento de
-planteamiento** (diseño del juego v2 y de la aplicación administrativa, con diagramas) más una
-**prueba mínima de concepto** verificable del contrato de contenido v2. La implementación
-—parser v2, navegación por niveles, retiro del modo sin conexión, backend— queda fuera del
-alcance de septiembre y su calendario no está planteado todavía.
+El avance del mes tiene dos partes:
+
+1. **Planteamiento** (completado): diseño del juego v2 y de la aplicación administrativa,
+   contrato `CONTENT_SCHEMA_V2.md`, esquema JSON y el documento con diagramas.
+2. **Implementación de la Fase 2** (en curso): el 8 de septiembre el responsable autorizó
+   arrancar la migración del código al contrato v2. Se ejecuta por incrementos pequeños y
+   revisables. No se fija un calendario de cierre.
+
+## Avance de la Fase 2 (implementación)
+
+| Incremento | Contenido | Estado |
+|---|---|---|
+| 1 | Parser y validadores v2 (`CatalogParserV2`, `LevelValidator`, `CatalogValidatorV2`) en el paquete `content.v2`, con pruebas | **Completado** |
+| 2 | Catálogo incluido en v2 + servicio de contenido que devuelve v2 + prueba integral | Pendiente |
+| 3 | Modelo de progreso v2 (`LevelProgress`, cálculo, desbloqueos) | Pendiente |
+| 4 | Retiro del código de operación sin conexión (cola persistente y caché offline) | Pendiente |
+| 5 | Navegación por niveles (`LevelListScreen`); eliminación de `ThemeMapScreen`/`MissionListScreen` y del modelo v1 | Pendiente |
 
 ## Entregables del mes
 
@@ -23,13 +35,13 @@ alcance de septiembre y su calendario no está planteado todavía.
 | Documento del avance del mes (con diagramas y UML) | Completado | `Avance_Septiembre_Caza_Estelar.docx` (fuente: `build_avance_septiembre.py`) |
 | Plan operativo del mes | Este documento | — |
 
-## Prueba mínima de concepto — alcance y límites
+## Estado del código
 
-- **Sí:** modelos de datos del contrato v2 en Kotlin, esquema JSON y pruebas de la derivación
-  de estrellas/porcentaje y de la resolución de niveles por id. `:core:test` en verde
-  (41 pruebas).
-- **No:** no se toca `CatalogParser`, `CatalogValidator`, la navegación, el progreso ni la
-  configuración de red. El paquete `content.v2` está aislado y no se usa desde el juego.
+- El paquete nuevo `content.v2` (modelos, parser y validadores) compila y tiene pruebas
+  verdes. Todavía **no se usa desde el juego**: pantallas, navegación y progreso siguen en v1
+  hasta los incrementos 2-5. `:core:test` en verde.
+- El modelo v1 (`ContentModels.kt`, `CatalogParser`, `CatalogValidator`, `MissionValidator`)
+  se elimina en el incremento 5, cuando ningún consumidor lo use.
 
 ## Trabajo del responsable durante septiembre
 
@@ -43,13 +55,7 @@ alcance de septiembre y su calendario no está planteado todavía.
 
 ## Fuera de alcance de septiembre
 
-- Implementación del parser v2, la navegación por niveles y el progreso v2.
-- Retiro del código de operación sin conexión.
 - Cualquier código del backend o de la consola (ni siquiera esqueleto).
 - Ejecución del spike de motor y el ADR.
 - Contenido académico real; aprovisionamiento del VPS y del dominio.
-
-## Fuera de este avance
-
-La implementación (Fase 2 en adelante) no forma parte del avance de septiembre y su calendario
-no está planteado todavía. La hoja de ruta por fases, sin fechas, está en `PLAN_DESARROLLO.md`.
+- Fases 3 a 7. La hoja de ruta por fases, sin fechas, está en `PLAN_DESARROLLO.md`.

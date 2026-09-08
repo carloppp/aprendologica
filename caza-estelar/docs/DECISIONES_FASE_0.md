@@ -42,8 +42,7 @@ Estado: **cerradas**. Reemplazan o resuelven las contradicciones abiertas regist
 ## Próximo paso
 
 Fases 0 y 1 completadas en septiembre. Contrato **v2 aprobado por el responsable el 8 de
-septiembre de 2026** (`docs/CONTENT_SCHEMA_V2.md`). La Fase 2 (implementación del parser v2,
-validación, progreso v2, retiro de offline y navegación por niveles) queda **autorizada**,
-partiendo de los modelos y el esquema ya escritos; no forma parte del avance de septiembre y
-su calendario no está planteado todavía. Hoja de ruta por fases, sin calendario, en
-`PLAN_DESARROLLO.md`.
+septiembre de 2026** (`docs/CONTENT_SCHEMA_V2.md`). El mismo día el responsable **autorizó
+arrancar la implementación de la Fase 2** (migración del código al contrato v2), que se ejecuta
+por incrementos pequeños y revisables sin un calendario de cierre fijo. Avance en
+`PLAN_SEPTIEMBRE_2026.md`. Hoja de ruta por fases en `PLAN_DESARROLLO.md`.
