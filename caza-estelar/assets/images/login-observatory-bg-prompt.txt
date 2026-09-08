@@ -1,0 +1,9 @@
+Use case: stylized-concept
+Asset type: Android game login screen background, landscape 16:9
+Primary request: Create an original welcoming nighttime fantasy-space observatory scene for a children's educational game called Caza Estelar, intended for ages 7–8.
+Scene/backdrop: a cozy curved observatory terrace floating beneath a deep navy and violet sky, soft nebula clouds, small constellations made of delicate dots and thin lines, warm golden telescope lights, a gentle luminous path leading toward the stars.
+Style/medium: polished whimsical 2D digital illustration, sophisticated children's storybook, soft rounded forms, painterly gradients, clean silhouettes.
+Composition/framing: landscape composition; leave a large calm dark-blue negative-space region in the center-left for a login panel; place the observatory and telescope mainly on the right and lower edges; preserve safe margins for mobile/tablet landscape UI.
+Lighting/mood: magical, safe, curious, calm; warm gold, cyan and restrained violet glows.
+Color palette: deep navy #081333, violet #352061, cyan #62D6E8, warm gold #FFD66B.
+Constraints: background only; no characters; no logos; no readable text; no buttons; no UI panels; no watermark; no green-screen color; no copied franchise designs; avoid excessive glow and visual clutter.

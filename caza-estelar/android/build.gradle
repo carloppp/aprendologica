@@ -1,0 +1,123 @@
+plugins {
+    id "com.android.application"
+    id "org.jetbrains.kotlin.android"
+}
+
+android {
+    namespace "com.explorax.cazaestelar"
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.explorax.cazaestelar"
+        minSdk 26
+        targetSdk 35
+        versionCode 12
+        versionName "2.1"
+    }
+
+    sourceSets.main.assets.srcDirs = ["../assets"]
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+}
+
+configurations {
+    natives
+}
+
+dependencies {
+    implementation project(":core")
+    implementation "androidx.core:core:1.15.0"
+    implementation "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86_64"
+    natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-arm64-v8a"
+    natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-armeabi-v7a"
+    natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-x86_64"
+}
+
+configurations.configureEach {
+    resolutionStrategy.force "androidx.core:core:1.15.0"
+}
+
+tasks.register("copyAndroidNatives") {
+    outputs.dir layout.projectDirectory.dir("src/main/jniLibs")
+    doLast {
+        def abiByClassifier = [
+            "natives-arm64-v8a": "arm64-v8a",
+            "natives-armeabi-v7a": "armeabi-v7a",
+            "natives-x86_64": "x86_64"
+        ]
+        configurations.natives.files.each { nativeJar ->
+            def entry = abiByClassifier.find { classifier, abi -> nativeJar.name.contains(classifier) }
+            if (entry != null) {
+                copy {
+                    from zipTree(nativeJar)
+                    into file("src/main/jniLibs/${entry.value}")
+                    include "*.so"
+                }
+            }
+        }
+    }
+}
+
+tasks.configureEach { task ->
+    if (task.name.matches("merge(Debug|Release)JniLibFolders")) {
+        task.dependsOn tasks.named("copyAndroidNatives")
+    }
+}
+
+tasks.register("verifyProductionConfiguration") {
+    group = "verification"
+    description = "Blocks release builds until every external service uses HTTPS and development mode is disabled."
+    def servicesFile = rootProject.file("assets/network/services.json")
+    def contentFile = rootProject.file("assets/content/source.json")
+    inputs.files servicesFile, contentFile
+
+    doLast {
+        def services = new groovy.json.JsonSlurper().parse(servicesFile)
+        def content = new groovy.json.JsonSlurper().parse(contentFile)
+        def problems = []
+        def secure = { value ->
+            if (!(value instanceof String)) return false
+            try {
+                def uri = new java.net.URI(value)
+                return uri.scheme == "https" && uri.host != null && uri.userInfo == null
+            } catch (Exception ignored) {
+                return false
+            }
+        }
+
+        if (services.developmentMode != false) {
+            problems.add("assets/network/services.json must set developmentMode to false")
+        }
+        if (services.authentication?.remoteEnabled != true ||
+            !secure(services.authentication?.signInUrl)) {
+            problems.add("remote authentication must be enabled with an HTTPS signInUrl")
+        }
+        if (services.progress?.remoteEnabled != true ||
+            !secure(services.progress?.syncUrl)) {
+            problems.add("remote progress must be enabled with an HTTPS syncUrl")
+        }
+        if (content.remoteEnabled != true || !secure(content.catalogUrl)) {
+            problems.add("remote content must be enabled with an HTTPS catalogUrl")
+        }
+        if (!problems.isEmpty()) {
+            throw new GradleException("Release blocked:\n - " + problems.join("\n - "))
+        }
+    }
+}
+
+tasks.configureEach { task ->
+    if (task.name == "preReleaseBuild") {
+        task.dependsOn tasks.named("verifyProductionConfiguration")
+    }
+}

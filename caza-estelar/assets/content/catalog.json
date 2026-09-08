@@ -1,0 +1,209 @@
+{
+  "schemaVersion": 1,
+  "publishedVersion": "2026.08.19.1",
+  "revision": 1,
+  "assets": [],
+  "constellations": [
+    {
+      "id": "exploracion-estelar",
+      "title": {
+        "es": "Exploración estelar",
+        "en": "Star exploration"
+      },
+      "themes": [
+        {
+          "id": "observacion",
+          "title": {
+            "es": "Observación",
+            "en": "Observation"
+          },
+          "missions": [
+            {
+              "id": "caza-estelar-01",
+              "version": 1,
+              "title": {
+                "es": "Misión 1: Caza estelar",
+                "en": "Mission 1: Star hunt"
+              },
+              "instruction": {
+                "es": "Arrastra la mira y alinea una estrella brillante",
+                "en": "Drag the sight and align a bright star"
+              },
+              "mechanic": {
+                "type": "telescope_hunt",
+                "config": {
+                  "targetCount": 3,
+                  "lockRadius": 92
+                }
+              },
+              "rewards": {
+                "maximumStars": 3
+              },
+              "unlock": {
+                "prerequisiteMissionIds": []
+              }
+            },
+            {
+              "id": "identificar-patrones-01",
+              "version": 1,
+              "title": {
+                "es": "Identificar patrones del cielo",
+                "en": "Identify sky patterns"
+              },
+              "instruction": {
+                "es": "Selecciona la figura que completa el patrón.",
+                "en": "Select the figure that completes the pattern."
+              },
+              "mechanic": {
+                "type": "multiple_choice",
+                "config": {
+                  "question": {
+                    "es": "Estrella, planeta, estrella, planeta… ¿qué sigue?",
+                    "en": "Star, planet, star, planet… what comes next?"
+                  },
+                  "options": [
+                    {
+                      "id": "estrella",
+                      "text": { "es": "Estrella", "en": "Star" },
+                      "correct": true
+                    },
+                    {
+                      "id": "planeta",
+                      "text": { "es": "Planeta", "en": "Planet" },
+                      "correct": false
+                    },
+                    {
+                      "id": "cometa",
+                      "text": { "es": "Cometa", "en": "Comet" },
+                      "correct": false
+                    }
+                  ],
+                  "attempts": 2,
+                  "successFeedback": {
+                    "es": "¡Muy bien! El patrón alterna estrella y planeta.",
+                    "en": "Great! The pattern alternates star and planet."
+                  },
+                  "retryFeedback": {
+                    "es": "Observa qué elemento aparece después de cada planeta.",
+                    "en": "Look at which element appears after each planet."
+                  }
+                }
+              },
+              "rewards": {
+                "maximumStars": 3
+              },
+              "unlock": {
+                "prerequisiteMissionIds": ["caza-estelar-01"]
+              }
+            }
+          ]
+        },
+        {
+          "id": "precision",
+          "title": {
+            "es": "Precisión",
+            "en": "Precision"
+          },
+          "missions": [
+            {
+              "id": "caza-estelar-02",
+              "version": 1,
+              "title": {
+                "es": "Rastreo avanzado",
+                "en": "Advanced tracking"
+              },
+              "instruction": {
+                "es": "Encuentra cinco estrellas usando una mira más precisa.",
+                "en": "Find five stars using a more precise sight."
+              },
+              "mechanic": {
+                "type": "telescope_hunt",
+                "config": {
+                  "targetCount": 5,
+                  "lockRadius": 70
+                }
+              },
+              "rewards": {
+                "maximumStars": 3
+              },
+              "unlock": {
+                "prerequisiteMissionIds": ["identificar-patrones-01"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "matematicas-galacticas",
+      "title": {
+        "es": "Matemáticas galácticas",
+        "en": "Galactic mathematics"
+      },
+      "themes": [
+        {
+          "id": "fracciones",
+          "title": {
+            "es": "Fracciones",
+            "en": "Fractions"
+          },
+          "missions": [
+            {
+              "id": "fracciones-01",
+              "version": 1,
+              "title": {
+                "es": "Reconocer fracciones",
+                "en": "Recognize fractions"
+              },
+              "instruction": {
+                "es": "Selecciona la figura que representa tres cuartos.",
+                "en": "Select the figure that represents three quarters."
+              },
+              "mechanic": {
+                "type": "multiple_choice",
+                "config": {
+                  "question": {
+                    "es": "¿Cuál fracción representa tres de cuatro partes iguales?",
+                    "en": "Which fraction represents three of four equal parts?"
+                  },
+                  "options": [
+                    {
+                      "id": "un-cuarto",
+                      "text": { "es": "1/4", "en": "1/4" },
+                      "correct": false
+                    },
+                    {
+                      "id": "tres-cuartos",
+                      "text": { "es": "3/4", "en": "3/4" },
+                      "correct": true
+                    },
+                    {
+                      "id": "dos-tercios",
+                      "text": { "es": "2/3", "en": "2/3" },
+                      "correct": false
+                    }
+                  ],
+                  "attempts": 2,
+                  "successFeedback": {
+                    "es": "¡Correcto! El numerador 3 indica las partes elegidas y el denominador 4 las partes totales.",
+                    "en": "Correct! The numerator 3 shows the selected parts and the denominator 4 the total parts."
+                  },
+                  "retryFeedback": {
+                    "es": "Busca una fracción con 3 arriba y 4 abajo.",
+                    "en": "Look for a fraction with 3 on top and 4 below."
+                  }
+                }
+              },
+              "rewards": {
+                "maximumStars": 3
+              },
+              "unlock": {
+                "prerequisiteMissionIds": []
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

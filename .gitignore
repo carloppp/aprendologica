@@ -1,0 +1,53 @@
+# --- Build outputs ---
+.gradle/
+.kotlin/
+**/build/
+caza-estelar/local.properties
+# Native libs extraídas por la tarea copyAndroidNatives (se regeneran)
+caza-estelar/android/src/main/jniLibs/
+
+# --- IDE / OS ---
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# --- Bundled toolchain (large, machine-specific; see docs/ENTORNO.md) ---
+.build-tools/
+
+# --- Generated binaries: never treat as source ---
+*.apk
+*.aab
+*.keystore
+*.jks
+*.p12
+
+# --- Generated documents (regenerate from build_*.py) ---
+/Propuesta_Caza_Estelar.docx
+/Propuesta_Backend_Caza_Estelar.docx
+/Documentacion_Integracion_Admin_Juego.docx
+/Informe_de_avances_Caza_Estelar.docx
+/Avance_solicitado_Caza_Estelar.docx
+/Evaluacion_tecnica_Caza_Estelar_TypeScript_7.docx
+/Avance_Septiembre_Caza_Estelar.docx
+caza-estelar/Propuesta_Caza_Estelar.docx
+caza-estelar/Propuesta_Backend_Caza_Estelar.docx
+caza-estelar/Documentacion_Integracion_Admin_Juego.docx
+
+# --- Visual QA render snapshots (regenerated from build_*.py) ---
+/.docx_qa_integracion/
+/.docx_qa_integracion_v2/
+/.docx_qa_integracion_v3/
+/qa_informe_avances/
+/qa_evaluacion_docx/
+/qa_avance_septiembre/
+caza-estelar/qa_propuesta/
+caza-estelar/qa_backend/
+
+# --- Python helpers ---
+__pycache__/
+*.pyc
+
+# --- Secrets ---
+*.env
+secrets.properties

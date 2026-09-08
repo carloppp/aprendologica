@@ -1,0 +1,9 @@
+Use case: logo-brand
+Asset type: square game logo / app icon face crop
+Input images: the small orange crop defines the exact target proportions; Tojil.png defines the character identity; the compact blue face defines the desired richness of surrounding motifs.
+Primary request: Create the final close-up face logo for Tojil. The entire square canvas must be Tojil's warm orange face, edge to edge, with no visible external background and no outline silhouette.
+Facial layout: place Tojil's orange-red spiral prominently in the upper third. Below it place two small short dark navy vertical eyes. Place a restrained white crescent smile below the eyes; do not make the smile wide or dominant.
+Character details: add clean orange-red and golden curved flame contour motifs entering subtly from the left, right and upper edges. These details frame the small facial features while leaving clear breathing space. The forehead spiral remains the strongest motif.
+Style: clean flat vector-like 2D art matching Tojil's original ExploraX style; crisp curves; minimal solid color blocks; no texture or 3D effects.
+Composition: exact 1:1 square; orange face fills 100% of the canvas; no external background; compact app-icon readability.
+Constraints: no body, neck, arms, scenery, stars, badge, border, text, wordmark, glow, shadow or watermark.

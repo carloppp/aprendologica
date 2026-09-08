@@ -1,0 +1,11 @@
+{
+  "developmentMode": true,
+  "authentication": {
+    "remoteEnabled": false,
+    "signInUrl": ""
+  },
+  "progress": {
+    "remoteEnabled": false,
+    "syncUrl": ""
+  }
+}

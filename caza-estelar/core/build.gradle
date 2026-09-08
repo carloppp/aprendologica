@@ -1,0 +1,24 @@
+plugins {
+    id "java-library"
+    id "org.jetbrains.kotlin.jvm"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+kotlin {
+    jvmToolchain(17)
+}
+
+dependencies {
+    api "com.badlogicgames.gdx:gdx:$gdxVersion"
+    api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+}
+
+test {
+    useJUnitPlatform()
+    systemProperty "caza.assets.dir", file("../assets").absolutePath
+}
