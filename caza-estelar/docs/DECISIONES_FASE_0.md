@@ -41,6 +41,8 @@ Estado: **cerradas**. Reemplazan o resuelven las contradicciones abiertas regist
 
 ## Próximo paso
 
-Fase 1 (reproducibilidad) — completada. Sigue la Fase 2: contrato v2 local en la app,
-planificada para septiembre en `PLAN_SEPTIEMBRE_2026.md`. Hoja de ruta general en
-`PLAN_DESARROLLO.md`.
+Fases 0 y 1 completadas en septiembre. Contrato **v2 aprobado por el responsable el 8 de
+septiembre de 2026** (`docs/CONTENT_SCHEMA_V2.md`). La Fase 2 (implementación del parser v2,
+validación, progreso v2, retiro de offline y navegación por niveles) queda **autorizada para
+arrancar en octubre**, partiendo de los modelos y el esquema ya escritos. Hoja de ruta general
+en `PLAN_DESARROLLO.md`.

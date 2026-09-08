@@ -1,8 +1,8 @@
 # Contrato de contenido v2
 
-> **Estado: planteamiento (septiembre 2026).** Este contrato reemplaza a
-> `CONTENT_SCHEMA_V1.md`. Todavía no está implementado en el parser del juego; la Fase 2
-> (octubre) lo implementa. La prueba mínima de concepto asociada son los modelos Kotlin en
+> **Estado: aprobado el 8 de septiembre de 2026 por el responsable (`carloppp`).**
+> Reemplaza a `CONTENT_SCHEMA_V1.md`. La Fase 2 (octubre) lo implementa en el parser del
+> juego. La prueba mínima de concepto asociada son los modelos Kotlin en
 > `core/src/main/kotlin/com/explorax/cazaestelar/content/v2/model/ContentModelsV2.kt` y el
 > esquema en `docs/contracts/catalog-v2.schema.json`.
 
