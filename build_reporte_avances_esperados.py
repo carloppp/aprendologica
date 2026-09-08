@@ -158,15 +158,15 @@ for i, (a, b) in enumerate([
 
 callout("Septiembre no implementa la aplicación. El avance del mes es el planteamiento del "
         "juego v2 y de la aplicación administrativa, más una prueba de concepto verificable "
-        "del contrato de contenido v2. La implementación comienza en octubre (Fase 2).")
+        "del contrato de contenido v2. La implementación no forma parte de este avance.")
 doc.add_page_break()
 
 # --------------------------------------------------------------------- 1
 doc.add_paragraph("1. Objetivo del mes", style="Heading 1")
 para("Dejar cerrado y verificable el diseño sobre el que se construirá el proyecto: las "
      "decisiones de producto, el entorno de trabajo, el contrato de contenido v2 y la "
-     "arquitectura de la aplicación administrativa. Con eso aprobado, la implementación de "
-     "octubre parte sin ambigüedades.")
+     "arquitectura de la aplicación administrativa. Con eso aprobado, la implementación "
+     "posterior parte sin ambigüedades.")
 
 # --------------------------------------------------------------------- 2
 doc.add_paragraph("2. Avances esperados de septiembre", style="Heading 1")
@@ -189,10 +189,7 @@ table(["#", "Entregable", "Criterio de aceptación", "Estado"], [
     ("6", "Documento del avance del mes",
      "Avance_Septiembre_Caza_Estelar.docx con flujo, UML, casos de uso, arquitectura administrativa y anexo de la prueba de concepto.",
      "Completado"),
-    ("7", "Plan de la Fase 2 para octubre",
-     "Secuencia de implementación (parser, validación, progreso, retiro de offline, navegación) registrada en PLAN_DESARROLLO.md.",
-     "Completado"),
-    ("8", "Revisión y aprobación por el responsable",
+    ("7", "Revisión y aprobación por el responsable",
      "Contrato v2 y documento de avance revisados y aprobados.",
      "En progreso"),
 ], [0.4, 2.0, 3.0, 1.0], shade_col=3, shade_map=ST)
@@ -217,7 +214,7 @@ table(["Fecha", "Hito"], [
     ("7-8 sep", "Entorno reproducible (Fase 1): Git, Wrapper, toolchain, línea base verde."),
     ("8 sep", "Contrato de contenido v2 redactado, esquema JSON y prueba de concepto en código."),
     ("8 sep", "Documento de avance del mes generado; contrato v2 aprobado por el responsable."),
-    ("resto de sep", "Revisión del documento de avance; preparación de insumos para octubre."),
+    ("resto de sep", "Revisión y aprobación del documento de avance."),
 ], [1.1, 5.3])
 
 # --------------------------------------------------------------------- 5
@@ -234,23 +231,20 @@ for x in [
 # --------------------------------------------------------------------- 6
 doc.add_paragraph("6. Dependencias del responsable", style="Heading 1")
 table(["Acción", "Necesaria para", "Estado"], [
-    ("Aprobar CONTENT_SCHEMA_V2.md y el documento de avance", "Arrancar la Fase 2 en octubre", "En progreso"),
-    ("Solicitud formal al equipo académico (currículo GT, temario por grado, formato de bancos)", "Contenido real y Fase 4", "Pendiente"),
-    ("Priorizar 3-4 mecánicas nuevas", "Fase 2 y Fase 4", "Pendiente"),
-    ("Definir proveedor, país y plan del VPS; usuarios simultáneos y volumen multimedia", "Fase 4", "Pendiente"),
-    ("Iniciar consulta legal sobre datos de menores (Guatemala y Estados Unidos)", "Fase 7", "Pendiente"),
+    ("Aprobar CONTENT_SCHEMA_V2.md y el documento de avance", "Cerrar el diseño del proyecto", "En progreso"),
+    ("Solicitud formal al equipo académico (currículo GT, temario por grado, formato de bancos)", "Contenido matemático real", "Pendiente"),
+    ("Priorizar 3-4 mecánicas nuevas", "Diseño de actividades", "Pendiente"),
+    ("Definir proveedor, país y plan del VPS; usuarios simultáneos y volumen multimedia", "Infraestructura del backend", "Pendiente"),
+    ("Iniciar consulta legal sobre datos de menores (Guatemala y Estados Unidos)", "Cumplimiento de privacidad", "Pendiente"),
 ], [3.0, 2.4, 1.0], shade_col=2, shade_map=ST)
 
 # --------------------------------------------------------------------- 7
-doc.add_paragraph("7. Resultado esperado al cierre y habilitación de octubre", style="Heading 1")
+doc.add_paragraph("7. Resultado esperado al cierre de septiembre", style="Heading 1")
 para("Al 30 de septiembre el proyecto debe tener: decisiones de producto cerradas, entorno "
      "reproducible, contrato de contenido v2 aprobado con su esquema y su prueba de concepto, "
-     "y la arquitectura de la aplicación administrativa planteada. Con eso, octubre inicia la "
-     "Fase 2 sin decisiones abiertas.")
-table(["Octubre — primer bloque", "Descripción"], [
-    ("Fase 2 — Contrato v2 en la app",
-     "Implementar CatalogParser v2, CatalogValidator y LevelValidator, el modelo de progreso v2, el retiro del modo sin conexión y la navegación por niveles, partiendo de los modelos y el esquema escritos en septiembre."),
-], [2.1, 4.3])
+     "y la arquitectura de la aplicación administrativa planteada. Con eso, el proyecto queda "
+     "listo para iniciar la implementación sin decisiones de producto abiertas. La "
+     "planificación de esa implementación no forma parte de este avance.")
 
 doc.add_paragraph("Documentos de respaldo", style="Heading 2")
 for x in [

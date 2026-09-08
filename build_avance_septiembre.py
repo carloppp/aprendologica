@@ -299,9 +299,9 @@ kicker("AVANCE DE SEPTIEMBRE 2026")
 doc.add_paragraph("Caza Estelar", style="Title")
 doc.add_paragraph("Planteamiento del juego y de la aplicación administrativa", style="Subtitle")
 
-para("septiembre no implementa la aplicación completa. El avance del mes es este planteamiento "
-     "de diseño más una prueba mínima de concepto verificable del contrato de contenido v2. "
-     "La implementación comienza en octubre.", lead="Alcance del mes:", lead_color=NAVY)
+para("septiembre no implementa la aplicación. El avance del mes es este planteamiento de "
+     "diseño más una prueba mínima de concepto verificable del contrato de contenido v2. "
+     "La implementación no forma parte de este avance.", lead="Alcance del mes:", lead_color=NAVY)
 
 t = doc.add_table(rows=5, cols=2); t.alignment = WD_TABLE_ALIGNMENT.LEFT; t.autofit = False
 for i, (a, b) in enumerate([
@@ -335,7 +335,7 @@ para("Durante esta etapa se cerraron las decisiones de producto pendientes (Fase
      "arquitectura de la aplicación administrativa y de la estructura de repositorios, más una "
      "prueba de concepto del modelo v2 en código.")
 para("La implementación del parser v2, la navegación por niveles, el retiro del modo sin "
-     "conexión y el backend se planifican a partir de octubre.")
+     "conexión y el backend quedan fuera del alcance de septiembre.")
 
 # --------------------------------------------------------------------- 2
 doc.add_paragraph("2. Trabajo de base ya ejecutado", style="Heading 1")
@@ -591,15 +591,12 @@ for x in [
     bullet(x)
 
 # --------------------------------------------------------------------- 10
-doc.add_paragraph("10. Trabajo de octubre en adelante", style="Heading 1")
-table(["Fase", "Objetivo"], [
-    ("Fase 2 — Contrato v2 en la app", "Implementar parser v2, validación, progreso v2, retiro del modo sin conexión y navegación por niveles."),
-    ("Fase 3 — Decisión de motor", "Spike libGDX vs Compose/Canvas y ADR."),
-    ("Fase 4 — Backend de autoría", "NestJS + Prisma + PostgreSQL en el Repo B: roles, CRUD de contenido, revisión, publicación inmutable y auditoría."),
-    ("Fase 5 — Consola web", "React + TypeScript conectada a la API de autoría; formularios por uiSchema."),
-    ("Fase 6 — Integración", "Catálogo y progreso remotos en entorno de pruebas; sincronización idempotente."),
-    ("Fase 7 — Producción", "Ambientes, firma, observabilidad, matriz de dispositivos, revisión legal y publicación gradual."),
-], [1.9, 4.5])
+doc.add_paragraph("10. Alcance de la implementación", style="Heading 1")
+para("La implementación de este planteamiento —parser v2, validación, progreso v2, retiro del "
+     "modo sin conexión, navegación por niveles, backend y consola— no forma parte del avance "
+     "de septiembre. Su planificación se abordará una vez que el planteamiento y el contrato "
+     "v2 estén aprobados. La hoja de ruta por fases, sin calendario, está en "
+     "caza-estelar/docs/PLAN_DESARROLLO.md.")
 
 doc.add_paragraph("Documentos de referencia", style="Heading 2")
 for x in [

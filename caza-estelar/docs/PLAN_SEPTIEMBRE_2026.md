@@ -8,7 +8,8 @@ Base: `DECISIONES_FASE_0.md`, `PLAN_DESARROLLO.md`, `Avance_solicitado_Caza_Este
 **Septiembre no implementa la aplicación.** El avance del mes es un **documento de
 planteamiento** (diseño del juego v2 y de la aplicación administrativa, con diagramas) más una
 **prueba mínima de concepto** verificable del contrato de contenido v2. La implementación
-—parser v2, navegación por niveles, retiro del modo sin conexión, backend— empieza en octubre.
+—parser v2, navegación por niveles, retiro del modo sin conexión, backend— queda fuera del
+alcance de septiembre y su calendario no está planteado todavía.
 
 ## Entregables del mes
 
@@ -34,7 +35,7 @@ planteamiento** (diseño del juego v2 y de la aplicación administrativa, con di
 
 | Acción | Para |
 |---|---|
-| Revisar y aprobar `CONTENT_SCHEMA_V2.md` y el documento del avance | Cerrar el contrato antes de implementarlo en octubre |
+| Revisar y aprobar `CONTENT_SCHEMA_V2.md` y el documento del avance | Cerrar el contrato antes de implementarlo |
 | Solicitud formal al equipo académico (currículo GT, temario por grado, formato de bancos) | Fase 4 y contenido real |
 | Priorizar 3-4 mecánicas nuevas | Fase 2-4 |
 | Proveedor/país/plan del VPS; usuarios simultáneos; volumen multimedia | Fase 4 |
@@ -48,7 +49,7 @@ planteamiento** (diseño del juego v2 y de la aplicación administrativa, con di
 - Ejecución del spike de motor y el ADR.
 - Contenido académico real; aprovisionamiento del VPS y del dominio.
 
-## Octubre en adelante
+## Fuera de este avance
 
-Ver `PLAN_DESARROLLO.md`. El primer bloque de implementación es la Fase 2 (contrato v2 en la
-app), partiendo de los modelos y el esquema ya escritos este mes.
+La implementación (Fase 2 en adelante) no forma parte del avance de septiembre y su calendario
+no está planteado todavía. La hoja de ruta por fases, sin fechas, está en `PLAN_DESARROLLO.md`.

@@ -11,6 +11,8 @@ caza-estelar/android/src/main/jniLibs/
 *.iml
 .DS_Store
 Thumbs.db
+~$*
+
 
 # --- Bundled toolchain (large, machine-specific; see docs/ENTORNO.md) ---
 .build-tools/
