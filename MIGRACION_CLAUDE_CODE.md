@@ -6,6 +6,7 @@ El contexto operativo está en:
 - `caza-estelar/CLAUDE.md`: instrucciones completas del proyecto Android.
 - `caza-estelar/docs/INDICE_DOCUMENTACION.md`: inventario y autoridad de la documentación.
 - `caza-estelar/docs/MIGRACION_A_CLAUDE_CODE.md`: diagnóstico, riesgos y secuencia de migración.
+- `caza-estelar/docs/PWA_MIGRATION.md`: destino PWA vigente, personajes, navegación y estado verificable.
 - `caza-estelar/docs/DECISIONES_FASE_0.md`: decisiones de producto cerradas (2026-09-07).
 - `caza-estelar/docs/ENTORNO.md`: toolchain embebido y comandos de compilación.
 - `caza-estelar/docs/PLAN_DESARROLLO.md`: hoja de ruta por fases.
@@ -24,4 +25,4 @@ con `/memory` que cargó `CLAUDE.md`.
 - **Pendiente:** confirmar la línea base de pruebas/compilación y el primer commit; iniciar la
   Fase 2 (contrato v2 local en la app).
 
-El código de la aplicación todavía no se ha modificado.
+Actualización 2026-10-05: la aplicación ya tiene un módulo `web` TeaVM y un ensamblado PWA verificable. Android se conserva durante la migración. Leer `caza-estelar/docs/PWA_MIGRATION.md` antes de continuar trabajo de plataforma o interfaz.

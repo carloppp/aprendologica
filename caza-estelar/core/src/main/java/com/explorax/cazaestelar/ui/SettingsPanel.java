@@ -7,11 +7,13 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Scaling;
 import com.explorax.cazaestelar.settings.AppSettings;
 
 /** Collapsible top-left settings control shared by interactive screens. */
@@ -42,9 +44,13 @@ public final class SettingsPanel extends Group {
         panel.setVisible(false);
         addActor(panel);
 
-        TextButton toggle = new TextButton("\u2699", blueButtonStyle());
+        // \u00cdcono dibujado en UiResources: Fredoka no incluye el glifo de engranaje.
+        TextButton toggle = new TextButton("", blueButtonStyle());
+        toggle.clearChildren();
+        Image gear = new Image(skin.getDrawable(UiResources.SETTINGS_ICON));
+        gear.setScaling(Scaling.fit);
+        toggle.add(gear).size(50f);
         toggle.setBounds(0f, panelHeight + 10f, 92f, 80f);
-        toggle.getLabel().setFontScale(1.15f);
         toggle.addListener(new ClickListener() {
             @Override public void clicked(InputEvent event, float x, float y) {
                 setExpanded(!expanded);

@@ -17,9 +17,32 @@ necesario instalar nada en el `PATH` para compilar desde la línea de comandos.
 
 | Herramienta | Ruta | Versión |
 |---|---|---|
-| JDK | `.build-tools/jdk/jdk-17.0.20+8` | Temurin 17.0.20+8 |
-| Android SDK | `.build-tools/android-sdk` | platform `android-35`, build-tools `35.0.0`, platform-tools con `adb` |
+| JDK 17 | `.build-tools/jdk/jdk-17.0.20+8` | Temurin 17.0.20+8 (proyecto libGDX) |
+| JDK 21 | `.build-tools/jdk/jdk-21.0.12.1+1` | Temurin 21.0.12.1+1 (APK Capacitor de `app/`) |
+| Android SDK | `.build-tools/android-sdk` | platforms `android-35` y `android-36`, build-tools `35.0.0`, platform-tools con `adb` |
 | Gradle (referencia) | `.build-tools/gradle/gradle-8.9` | 8.9 |
+| Node.js / npm | instalado en el sistema (`PATH`) | Node 24.19, npm 11.17 |
+
+## Cliente TypeScript (`app/`, ADR 001)
+
+Desde `caza-estelar/app/`:
+
+```powershell
+npm install                 # primera vez
+npm run dev                 # servidor de desarrollo (http://localhost:5173)
+npm test                    # pruebas Vitest (contrato v2, progreso, sesión, catálogo publicado)
+npm run build               # typecheck + PWA en app/dist/
+npm run preview             # sirve dist/ con service worker (http://localhost:4173)
+
+# APK de depuración (Capacitor 8 requiere JDK 21 y compileSdk 36)
+$env:JAVA_HOME = "$PWD\..\..\.build-tools\jdk\jdk-21.0.12.1+1"
+$env:ANDROID_HOME = "$PWD\..\..\.build-tools\android-sdk"
+npm run android:sync        # build web + copia a android/
+cd android; .\gradlew.bat assembleDebug   # app/android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+Para publicar la PWA, subir `app/dist/` completo a un host HTTPS. No editar
+`app/android/app/src/main/assets/public/`: `cap sync` la regenera.
 
 `caza-estelar/local.properties` (no versionado) apunta `sdk.dir` al SDK embebido. Android Studio
 lo regenera con el SDK local de cada máquina.

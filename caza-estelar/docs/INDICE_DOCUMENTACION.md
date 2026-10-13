@@ -1,12 +1,14 @@
 # Índice de documentación — Caza Estelar
 
-Actualizado: 8 de septiembre de 2026.
+Actualizado: 5 de octubre de 2026.
 
 ## Punto de entrada
 
 | Documento | Uso recomendado | Autoridad |
 |---|---|---|
 | `../CLAUDE.md` | Contexto automático, reglas y comandos para Claude Code | Operativa |
+| `PWA_MIGRATION.md` | Arquitectura PWA vigente, producto visual y plan de migración | Operativa |
+| `ADR_001_MOTOR_TYPESCRIPT.md` | Decisión de motor: cliente TypeScript (`app/`) para PWA + APK con Capacitor | Operativa |
 | `DECISIONES_FASE_0.md` | Decisiones de producto cerradas (contrato, motor, conectividad, repos, progreso) | Operativa |
 | `PLAN_DESARROLLO.md` | Hoja de ruta por fases | Operativa |
 | `PLAN_SEPTIEMBRE_2026.md` | Alcance del avance de septiembre (planteamiento + prueba de concepto) | Operativa |
@@ -35,7 +37,8 @@ Cuando se actualice un documento generado, modificar primero su fuente Markdown 
 
 ## Código y configuración que documentan la verdad ejecutable
 
-- Build: `../settings.gradle`, `../build.gradle`, `../core/build.gradle`, `../android/build.gradle`.
+- Cliente TypeScript (destino vigente): `../app/package.json`, `../app/capacitor.config.ts`, `../app/public/content/catalog.json` (catálogo v2), `../app/src/content/` (contrato v2), `../app/src/content/publishedCatalog.test.ts` (prueba integral).
+- Build libGDX (referencia congelada): `../settings.gradle`, `../build.gradle`, `../core/build.gradle`, `../android/build.gradle`, `../web/build.gradle`.
 - Plataforma: `../android/src/main/AndroidManifest.xml`.
 - Catálogo incluido: `../assets/content/catalog.json`.
 - Fuente de catálogo: `../assets/content/source.json`.
@@ -54,4 +57,3 @@ Cuando se actualice un documento generado, modificar primero su fuente Markdown 
 ## Mantenimiento
 
 Actualizar este índice y `CLAUDE.md` cuando cambie cualquiera de estos elementos: módulos, toolchain, comandos, contrato de contenido, endpoints, política offline, arquitectura móvil o fuentes de autoridad.
-

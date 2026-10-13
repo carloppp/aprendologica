@@ -13,6 +13,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.utils.Disposable;
 
 public final class UiResources implements Disposable {
+    public static final String SETTINGS_ICON = "icon-settings";
     private final Skin skin = new Skin();
 
     public UiResources() {
@@ -21,6 +22,7 @@ public final class UiResources implements Disposable {
         pixmap.fill();
         skin.add("white", new Texture(pixmap));
         pixmap.dispose();
+        skin.add(SETTINGS_ICON, createGearIcon());
         skin.add("default-font", createFont(42, 0.8f));
         skin.add("subtitle-font", createFont(34, 0.7f));
         skin.add("title-font", createFont(76, 1.8f));
@@ -58,6 +60,38 @@ public final class UiResources implements Disposable {
         skin.add("default", field);
     }
 
+    /** Engranaje blanco de 8 dientes, dibujado a 128 px y mostrado reducido con filtro lineal. */
+    private static Texture createGearIcon() {
+        int size = 128;
+        float center = size / 2f;
+        Pixmap pixmap = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+        pixmap.setColor(Color.WHITE);
+        pixmap.fillCircle((int) center, (int) center, 38);
+        for (int tooth = 0; tooth < 8; tooth++) {
+            double angle = tooth * Math.PI / 4.0;
+            int[] baseLeft = polar(center, 34, angle - 0.26);
+            int[] baseRight = polar(center, 34, angle + 0.26);
+            int[] tipLeft = polar(center, 57, angle - 0.17);
+            int[] tipRight = polar(center, 57, angle + 0.17);
+            pixmap.fillTriangle(baseLeft[0], baseLeft[1], baseRight[0], baseRight[1], tipRight[0], tipRight[1]);
+            pixmap.fillTriangle(baseLeft[0], baseLeft[1], tipRight[0], tipRight[1], tipLeft[0], tipLeft[1]);
+        }
+        pixmap.setBlending(Pixmap.Blending.None);
+        pixmap.setColor(0f, 0f, 0f, 0f);
+        pixmap.fillCircle((int) center, (int) center, 17);
+        Texture texture = new Texture(pixmap);
+        texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        pixmap.dispose();
+        return texture;
+    }
+
+    private static int[] polar(float center, float radius, double angle) {
+        return new int[] {
+            Math.round(center + (float) (Math.cos(angle) * radius)),
+            Math.round(center + (float) (Math.sin(angle) * radius))
+        };
+    }
+
     private BitmapFont createFont(int size, float borderWidth) {
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
             com.badlogic.gdx.Gdx.files.internal("fonts/Fredoka-Variable.ttf")
@@ -73,7 +107,7 @@ public final class UiResources implements Disposable {
         parameter.minFilter = Texture.TextureFilter.Linear;
         parameter.magFilter = Texture.TextureFilter.Linear;
         parameter.characters = FreeTypeFontGenerator.DEFAULT_CHARS
-            + "\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1\u00a1\u00bf\u2699";
+            + "\u00e1\u00e9\u00ed\u00f3\u00fa\u00c1\u00c9\u00cd\u00d3\u00da\u00f1\u00d1\u00a1\u00bf\u2022";
         BitmapFont font = generator.generateFont(parameter);
         generator.dispose();
         font.getData().markupEnabled = true;

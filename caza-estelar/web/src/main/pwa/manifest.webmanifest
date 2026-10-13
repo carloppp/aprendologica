@@ -1,0 +1,21 @@
+{
+  "name": "Aprendo Lógica",
+  "short_name": "Aprendo Lógica",
+  "description": "Aventura educativa de lógica y conjuntos con Stella y Luma.",
+  "lang": "es",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#050b20",
+  "theme_color": "#08142f",
+  "icons": [
+    {
+      "src": "icons/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

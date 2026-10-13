@@ -32,7 +32,7 @@ public final class MainMenuScreen extends BaseScreen {
                 Actions.scaleTo(1f, 1f, 0.64f, com.badlogic.gdx.math.Interpolation.swingOut)
             )
         ));
-        Label title = new Label(settings.text("Caza Estelar", "Star Hunt"), ui.skin(), "title");
+        Label title = new Label("Aprendo Lógica", ui.skin(), "title");
         title.setFontScale(0.70f);
         title.setAlignment(com.badlogic.gdx.utils.Align.center);
         Label welcome = new Label(

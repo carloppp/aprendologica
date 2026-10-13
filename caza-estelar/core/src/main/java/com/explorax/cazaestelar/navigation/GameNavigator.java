@@ -291,6 +291,8 @@ public final class GameNavigator {
         } finally {
             if (!installed) next.dispose();
         }
-        if (previous != null && previous != next) previous.dispose();
+        // La navegación puede dispararse desde Stage.act() de la pantalla saliente; si se libera
+        // aquí, su render() continúa con stage.draw() sobre un shader liberado (WebGL lo rechaza).
+        if (previous != null && previous != next) Gdx.app.postRunnable(previous::dispose);
     }
 }

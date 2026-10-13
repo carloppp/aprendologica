@@ -15,9 +15,13 @@ import com.explorax.cazaestelar.settings.AppSettings;
 import com.explorax.cazaestelar.ui.UiResources;
 import com.explorax.cazaestelar.ui.VisualAssets;
 
-/** Cold-start introduction with the Explorax brand while assets load. */
+/** Cold-start introduction with the Aprendo Lógica brand while assets load. */
 public final class LoadingScreen extends BaseScreen {
     private static final float MINIMUM_INTRO_TIME = 2.45f;
+    private static final float LEAVE_DELAY = 0.18f;
+    private static final float LEAVE_FADE = 0.62f;
+    /** Fondo del logo de Aprendo Lógica; llena también las franjas fuera del 16:9. */
+    private static final Color INTRO_PAPER = new Color(254f / 255f, 254f / 255f, 254f / 255f, 1f);
 
     private final GameNavigator navigator;
     private final AssetManager assets;
@@ -25,6 +29,7 @@ public final class LoadingScreen extends BaseScreen {
     private final Table intro;
     private float elapsed;
     private boolean leaving;
+    private float leaveElapsed;
 
     public LoadingScreen(GameNavigator navigator, AssetManager assets, UiResources ui,
                          AppSettings settings) {
@@ -39,10 +44,16 @@ public final class LoadingScreen extends BaseScreen {
         loadLinearTexture(VisualAssets.BUTTON_PRIMARY);
         loadLinearTexture(VisualAssets.BUTTON_PRIMARY_DOWN);
         loadLinearTexture(VisualAssets.BUTTON_SECONDARY);
+        loadLinearTexture(VisualAssets.BRAND_LOGOTYPE);
+        loadLinearTexture(VisualAssets.LOGIN_CARD);
+        loadLinearTexture(VisualAssets.FIELD_LIGHT);
+        loadLinearTexture(VisualAssets.FIELD_LIGHT_FOCUSED);
+        loadLinearTexture(VisualAssets.BUTTON_BRAND);
+        loadLinearTexture(VisualAssets.BUTTON_BRAND_DOWN);
+        loadLinearTexture(VisualAssets.BUTTON_BRAND_DISABLED);
 
-        Image backdrop = new Image(ui.skin().newDrawable(
-            "white", new Color(4f / 255f, 8f / 255f, 32f / 255f, 1f)
-        ));
+        clearColor.set(INTRO_PAPER);
+        Image backdrop = new Image(ui.skin().newDrawable("white", INTRO_PAPER));
         backdrop.setBounds(0f, 0f, WORLD_WIDTH, WORLD_HEIGHT);
         stage.addActor(backdrop);
 
@@ -61,13 +72,13 @@ public final class LoadingScreen extends BaseScreen {
         stage.addActor(logoContainer);
 
         Label loading = new Label(settings.text("Cargando...", "Loading..."), ui.skin(), "subtitle");
-        loading.setColor(new Color(0.63f, 0.82f, 1f, 0.88f));
+        loading.setColor(new Color(7f / 255f, 37f / 255f, 86f / 255f, 0.88f));
 
         progressFill = new Image(ui.skin().newDrawable(
-            "white", new Color(0.30f, 0.88f, 1f, 0.92f)
+            "white", new Color(7f / 255f, 37f / 255f, 86f / 255f, 0.92f)
         ));
         Image progressTrack = new Image(ui.skin().newDrawable(
-            "white", new Color(0.10f, 0.18f, 0.38f, 0.72f)
+            "white", new Color(140f / 255f, 205f / 255f, 253f / 255f, 0.55f)
         ));
         Table progress = new Table();
         progress.addActor(progressTrack);
@@ -95,6 +106,12 @@ public final class LoadingScreen extends BaseScreen {
     @Override
     public void render(float delta) {
         elapsed += delta;
+        if (leaving) {
+            // Las franjas pasan del blanco del logo al azul nocturno a la par del fundido.
+            leaveElapsed += Math.min(delta, 1f / 30f); // mismo paso que stage.act()
+            float t = Math.min(1f, Math.max(0f, (leaveElapsed - LEAVE_DELAY) / LEAVE_FADE));
+            clearColor.set(INTRO_PAPER).lerp(DEFAULT_CLEAR, Interpolation.fade.apply(t));
+        }
         boolean ready = assets.update();
         progressFill.setWidth(Math.max(8f, 420f * assets.getProgress()));
         super.render(delta);
@@ -103,10 +120,10 @@ public final class LoadingScreen extends BaseScreen {
             leaving = true;
             stage.getRoot().clearActions();
             stage.getRoot().addAction(Actions.sequence(
-                Actions.delay(0.18f),
+                Actions.delay(LEAVE_DELAY),
                 Actions.parallel(
-                    Actions.fadeOut(0.62f, Interpolation.fade),
-                    Actions.scaleTo(1.035f, 1.035f, 0.62f, Interpolation.pow2In)
+                    Actions.fadeOut(LEAVE_FADE, Interpolation.fade),
+                    Actions.scaleTo(1.035f, 1.035f, LEAVE_FADE, Interpolation.pow2In)
                 ),
                 Actions.run(navigator::showEntry)
             ));

@@ -1,0 +1,1032 @@
+{
+  "schemaVersion": 2,
+  "publishedVersion": "2026.10.12.1",
+  "revision": 2,
+  "minimumAppVersion": "0.5.0",
+  "assets": [],
+  "constellations": [
+    {
+      "id": "conjuntos",
+      "version": 1,
+      "order": 1,
+      "area": "logic_and_sets",
+      "title": {
+        "es": "Conjuntos",
+        "en": "Sets"
+      },
+      "description": {
+        "es": "Agrupa, compara y combina conjuntos.",
+        "en": "Group, compare and combine sets."
+      },
+      "visual": {
+        "coverAssetId": null,
+        "accentColor": "#8CCDFD"
+      },
+      "levels": [
+        {
+          "id": "conjuntos-elementos",
+          "version": 2,
+          "order": 1,
+          "title": {
+            "es": "Elementos",
+            "en": "Elements"
+          },
+          "instruction": {
+            "es": "Elige las estrellas",
+            "en": "Pick the stars"
+          },
+          "mechanic": {
+            "type": "set_select",
+            "schemaVersion": 1,
+            "config": {
+              "attempts": 2,
+              "successFeedback": {
+                "es": "¡Muy bien! Esos son los elementos.",
+                "en": "Great! Those are the elements."
+              },
+              "retryFeedback": {
+                "es": "Mira bien la forma y el color.",
+                "en": "Look closely at the shape and the color."
+              },
+              "rounds": [
+                {
+                  "prompt": {
+                    "es": "Elige las estrellas",
+                    "en": "Pick the stars"
+                  },
+                  "pieces": [
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "gem",
+                      "color": "purple"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    }
+                  ],
+                  "target": {
+                    "shape": "star"
+                  }
+                },
+                {
+                  "prompt": {
+                    "es": "Elige las lunas",
+                    "en": "Pick the moons"
+                  },
+                  "pieces": [
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    },
+                    {
+                      "shape": "gem",
+                      "color": "purple"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "blue"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    }
+                  ],
+                  "target": {
+                    "shape": "moon"
+                  }
+                },
+                {
+                  "prompt": {
+                    "es": "Elige lo morado",
+                    "en": "Pick the purple ones"
+                  },
+                  "pieces": [
+                    {
+                      "shape": "gem",
+                      "color": "purple"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "purple"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "purple"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "blue"
+                    }
+                  ],
+                  "target": {
+                    "color": "purple"
+                  }
+                },
+                {
+                  "prompt": {
+                    "es": "Elige los círculos azules",
+                    "en": "Pick the blue circles"
+                  },
+                  "pieces": [
+                    {
+                      "shape": "circle",
+                      "color": "blue"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "blue"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "blue"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "pink"
+                    }
+                  ],
+                  "target": {
+                    "shape": "circle",
+                    "color": "blue"
+                  }
+                }
+              ]
+            }
+          },
+          "unlock": {
+            "prerequisiteLevelIds": []
+          },
+          "completion": {
+            "type": "minimum_score",
+            "value": 60
+          },
+          "reward": {
+            "experience": 50,
+            "badgeId": null
+          }
+        },
+        {
+          "id": "conjuntos-pertenencia",
+          "version": 2,
+          "order": 2,
+          "title": {
+            "es": "Pertenencia",
+            "en": "Membership"
+          },
+          "instruction": {
+            "es": "¿Pertenece al conjunto?",
+            "en": "Does it belong to the set?"
+          },
+          "mechanic": {
+            "type": "set_membership",
+            "schemaVersion": 1,
+            "config": {
+              "attempts": 2,
+              "successFeedback": {
+                "es": "¡Correcto! Revisaste el conjunto.",
+                "en": "Correct! You checked the set."
+              },
+              "retryFeedback": {
+                "es": "Busca la pieza dentro del conjunto.",
+                "en": "Look for the piece inside the set."
+              },
+              "rounds": [
+                {
+                  "set": [
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "gem",
+                      "color": "purple"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "blue"
+                    }
+                  ],
+                  "candidate": {
+                    "shape": "moon",
+                    "color": "cyan"
+                  }
+                },
+                {
+                  "set": [
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "pink"
+                    }
+                  ],
+                  "candidate": {
+                    "shape": "star",
+                    "color": "yellow"
+                  }
+                },
+                {
+                  "set": [
+                    {
+                      "shape": "gem",
+                      "color": "purple"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "blue"
+                    }
+                  ],
+                  "candidate": {
+                    "shape": "star",
+                    "color": "yellow"
+                  }
+                },
+                {
+                  "set": [
+                    {
+                      "shape": "circle",
+                      "color": "blue"
+                    },
+                    {
+                      "shape": "gem",
+                      "color": "pink"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    }
+                  ],
+                  "candidate": {
+                    "shape": "gem",
+                    "color": "pink"
+                  }
+                }
+              ]
+            }
+          },
+          "unlock": {
+            "prerequisiteLevelIds": []
+          },
+          "completion": {
+            "type": "minimum_score",
+            "value": 60
+          },
+          "reward": {
+            "experience": 50,
+            "badgeId": null
+          }
+        },
+        {
+          "id": "conjuntos-subconjuntos",
+          "version": 2,
+          "order": 3,
+          "title": {
+            "es": "Subconjuntos",
+            "en": "Subsets"
+          },
+          "instruction": {
+            "es": "Coloca el grupo dentro",
+            "en": "Put the group inside"
+          },
+          "mechanic": {
+            "type": "set_subset",
+            "schemaVersion": 1,
+            "config": {
+              "attempts": 2,
+              "successFeedback": {
+                "es": "¡Sí! Todo el grupo está en el conjunto.",
+                "en": "Yes! The whole group is in the set."
+              },
+              "retryFeedback": {
+                "es": "Cada pieza del grupo debe estar en el conjunto.",
+                "en": "Every piece of the group must be in the set."
+              },
+              "rounds": [
+                {
+                  "set": [
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    },
+                    {
+                      "shape": "gem",
+                      "color": "purple"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "blue"
+                    }
+                  ],
+                  "groups": [
+                    [
+                      {
+                        "shape": "star",
+                        "color": "yellow"
+                      },
+                      {
+                        "shape": "moon",
+                        "color": "cyan"
+                      }
+                    ],
+                    [
+                      {
+                        "shape": "star",
+                        "color": "yellow"
+                      },
+                      {
+                        "shape": "circle",
+                        "color": "pink"
+                      }
+                    ]
+                  ]
+                },
+                {
+                  "set": [
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "blue"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "yellow"
+                    }
+                  ],
+                  "groups": [
+                    [
+                      {
+                        "shape": "moon",
+                        "color": "cyan"
+                      },
+                      {
+                        "shape": "gem",
+                        "color": "purple"
+                      }
+                    ],
+                    [
+                      {
+                        "shape": "star",
+                        "color": "blue"
+                      },
+                      {
+                        "shape": "circle",
+                        "color": "yellow"
+                      }
+                    ],
+                    [
+                      {
+                        "shape": "circle",
+                        "color": "blue"
+                      }
+                    ]
+                  ]
+                },
+                {
+                  "set": [
+                    {
+                      "shape": "gem",
+                      "color": "purple"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "pink"
+                    }
+                  ],
+                  "groups": [
+                    [
+                      {
+                        "shape": "gem",
+                        "color": "purple"
+                      },
+                      {
+                        "shape": "star",
+                        "color": "yellow"
+                      }
+                    ],
+                    [
+                      {
+                        "shape": "moon",
+                        "color": "cyan"
+                      }
+                    ],
+                    [
+                      {
+                        "shape": "circle",
+                        "color": "blue"
+                      },
+                      {
+                        "shape": "moon",
+                        "color": "cyan"
+                      }
+                    ]
+                  ]
+                },
+                {
+                  "set": [
+                    {
+                      "shape": "star",
+                      "color": "pink"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "blue"
+                    },
+                    {
+                      "shape": "gem",
+                      "color": "purple"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    }
+                  ],
+                  "groups": [
+                    [
+                      {
+                        "shape": "star",
+                        "color": "pink"
+                      },
+                      {
+                        "shape": "star",
+                        "color": "yellow"
+                      },
+                      {
+                        "shape": "gem",
+                        "color": "purple"
+                      }
+                    ],
+                    [
+                      {
+                        "shape": "star",
+                        "color": "blue"
+                      },
+                      {
+                        "shape": "gem",
+                        "color": "purple"
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          },
+          "unlock": {
+            "prerequisiteLevelIds": []
+          },
+          "completion": {
+            "type": "minimum_score",
+            "value": 60
+          },
+          "reward": {
+            "experience": 50,
+            "badgeId": null
+          }
+        },
+        {
+          "id": "conjuntos-union",
+          "version": 2,
+          "order": 4,
+          "title": {
+            "es": "Unión",
+            "en": "Union"
+          },
+          "instruction": {
+            "es": "Reúne los dos conjuntos",
+            "en": "Put both sets together"
+          },
+          "mechanic": {
+            "type": "set_union",
+            "schemaVersion": 1,
+            "config": {
+              "attempts": 2,
+              "successFeedback": {
+                "es": "¡Genial! A ∪ B tiene todo, sin repetir.",
+                "en": "Awesome! A ∪ B has everything, without repeats."
+              },
+              "retryFeedback": {
+                "es": "Falta algo de A o de B.",
+                "en": "Something from A or B is missing."
+              },
+              "rounds": [
+                {
+                  "a": [
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    }
+                  ],
+                  "b": [
+                    {
+                      "shape": "gem",
+                      "color": "purple"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "blue"
+                    }
+                  ]
+                },
+                {
+                  "a": [
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "pink"
+                    }
+                  ],
+                  "b": [
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    }
+                  ]
+                },
+                {
+                  "a": [
+                    {
+                      "shape": "gem",
+                      "color": "purple"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "blue"
+                    }
+                  ],
+                  "b": [
+                    {
+                      "shape": "circle",
+                      "color": "blue"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "pink"
+                    }
+                  ]
+                },
+                {
+                  "a": [
+                    {
+                      "shape": "star",
+                      "color": "blue"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    }
+                  ],
+                  "b": [
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "blue"
+                    },
+                    {
+                      "shape": "gem",
+                      "color": "pink"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "unlock": {
+            "prerequisiteLevelIds": []
+          },
+          "completion": {
+            "type": "minimum_score",
+            "value": 60
+          },
+          "reward": {
+            "experience": 50,
+            "badgeId": null
+          }
+        },
+        {
+          "id": "conjuntos-interseccion",
+          "version": 2,
+          "order": 5,
+          "title": {
+            "es": "Intersección",
+            "en": "Intersection"
+          },
+          "instruction": {
+            "es": "Coloca lo que comparten",
+            "en": "Place what they share"
+          },
+          "mechanic": {
+            "type": "set_intersection",
+            "schemaVersion": 1,
+            "config": {
+              "attempts": 2,
+              "successFeedback": {
+                "es": "¡Eso es! Cumple A y también B.",
+                "en": "That’s it! It fits A and B too."
+              },
+              "retryFeedback": {
+                "es": "Debe cumplir las dos cosas: A y B.",
+                "en": "It must fit both: A and B."
+              },
+              "rounds": [
+                {
+                  "a": {
+                    "color": "blue"
+                  },
+                  "b": {
+                    "shape": "star"
+                  },
+                  "pieces": [
+                    {
+                      "shape": "circle",
+                      "color": "blue"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "blue"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "purple"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "purple"
+                    }
+                  ]
+                },
+                {
+                  "a": {
+                    "color": "yellow"
+                  },
+                  "b": {
+                    "shape": "circle"
+                  },
+                  "pieces": [
+                    {
+                      "shape": "circle",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "blue"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "pink"
+                    }
+                  ]
+                },
+                {
+                  "a": {
+                    "color": "purple"
+                  },
+                  "b": {
+                    "shape": "gem"
+                  },
+                  "pieces": [
+                    {
+                      "shape": "gem",
+                      "color": "purple"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "purple"
+                    },
+                    {
+                      "shape": "gem",
+                      "color": "cyan"
+                    },
+                    {
+                      "shape": "gem",
+                      "color": "pink"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "purple"
+                    },
+                    {
+                      "shape": "gem",
+                      "color": "purple"
+                    }
+                  ]
+                },
+                {
+                  "a": {
+                    "color": "pink"
+                  },
+                  "b": {
+                    "shape": "star"
+                  },
+                  "pieces": [
+                    {
+                      "shape": "star",
+                      "color": "pink"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "pink"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "pink"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "blue"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "unlock": {
+            "prerequisiteLevelIds": []
+          },
+          "completion": {
+            "type": "minimum_score",
+            "value": 60
+          },
+          "reward": {
+            "experience": 50,
+            "badgeId": null
+          }
+        },
+        {
+          "id": "conjuntos-diferencia",
+          "version": 2,
+          "order": 6,
+          "title": {
+            "es": "Diferencia",
+            "en": "Difference"
+          },
+          "instruction": {
+            "es": "Elige lo que solo está en A",
+            "en": "Pick what is only in A"
+          },
+          "mechanic": {
+            "type": "set_difference",
+            "schemaVersion": 1,
+            "config": {
+              "attempts": 2,
+              "successFeedback": {
+                "es": "¡Perfecto! Eso está en A y no en B.",
+                "en": "Perfect! That is in A and not in B."
+              },
+              "retryFeedback": {
+                "es": "Lo que también está en B no va.",
+                "en": "What is also in B does not go."
+              },
+              "rounds": [
+                {
+                  "a": [
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "blue"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "pink"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    }
+                  ],
+                  "b": [
+                    {
+                      "shape": "star",
+                      "color": "pink"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "blue"
+                    }
+                  ]
+                },
+                {
+                  "a": [
+                    {
+                      "shape": "gem",
+                      "color": "purple"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    }
+                  ],
+                  "b": [
+                    {
+                      "shape": "moon",
+                      "color": "cyan"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    }
+                  ]
+                },
+                {
+                  "a": [
+                    {
+                      "shape": "circle",
+                      "color": "blue"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "pink"
+                    }
+                  ],
+                  "b": [
+                    {
+                      "shape": "circle",
+                      "color": "blue"
+                    },
+                    {
+                      "shape": "gem",
+                      "color": "purple"
+                    },
+                    {
+                      "shape": "moon",
+                      "color": "yellow"
+                    }
+                  ]
+                },
+                {
+                  "a": [
+                    {
+                      "shape": "moon",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "gem",
+                      "color": "pink"
+                    },
+                    {
+                      "shape": "star",
+                      "color": "yellow"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "pink"
+                    }
+                  ],
+                  "b": [
+                    {
+                      "shape": "gem",
+                      "color": "pink"
+                    },
+                    {
+                      "shape": "circle",
+                      "color": "blue"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "unlock": {
+            "prerequisiteLevelIds": []
+          },
+          "completion": {
+            "type": "minimum_score",
+            "value": 60
+          },
+          "reward": {
+            "experience": 50,
+            "badgeId": null
+          }
+        }
+      ]
+    }
+  ]
+}

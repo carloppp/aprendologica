@@ -1,0 +1,78 @@
+plugins {
+    id "java"
+    id "com.github.xpenatan.gdx-teavm"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+dependencies {
+    implementation project(":core")
+    implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+    implementation "com.github.xpenatan.gdx-teavm:gdx-freetype-web:$gdxTeaVMVersion"
+}
+
+gdxTeaVM {
+    assets.from(rootProject.file("assets"))
+
+    js {
+        mainClass = "com.explorax.cazaestelar.web.WebLauncher"
+        htmlTitle = "Aprendo Lógica"
+        htmlWidth = 1920
+        htmlHeight = 1080
+        obfuscated = false
+        serverPort = 8080
+        targetFileName = "app.js"
+    }
+}
+
+tasks.register("assemblePwa") {
+    group = "build"
+    description = "Builds the TeaVM JavaScript target and adds the installable PWA shell."
+    dependsOn tasks.named("gdx_teavm_web_js_build")
+
+    doLast {
+        def outputDir = layout.buildDirectory.dir("dist/js/webapp").get().asFile
+        copy {
+            from layout.projectDirectory.dir("src/main/pwa")
+            into outputDir
+        }
+
+        // El service worker sirve app.js y assets desde caché; una versión única por build
+        // obliga a los navegadores (y a la PWA instalada) a descartar la caché anterior.
+        def workerFile = new File(outputDir, "service-worker.js")
+        def buildId = new Date().format("yyyyMMddHHmmss", TimeZone.getTimeZone("UTC"))
+        workerFile.setText(workerFile.getText("UTF-8").replace("__BUILD_ID__", buildId), "UTF-8")
+
+        def indexFile = new File(outputDir, "index.html")
+        if (!indexFile.isFile()) {
+            throw new GradleException("TeaVM did not generate ${indexFile}")
+        }
+
+        def html = indexFile.getText("UTF-8")
+        def pwaHead = '''
+    <meta name="theme-color" content="#08142f">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icons/app-icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="pwa.css">
+'''
+        def pwaRegistration = '''
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => navigator.serviceWorker.register("service-worker.js"));
+      }
+    </script>
+'''
+
+        if (!html.contains('rel="manifest"')) {
+            html = html.replace("</head>", pwaHead + "</head>")
+        }
+        if (!html.contains("serviceWorker.register")) {
+            html = html.replace("</body>", pwaRegistration + "</body>")
+        }
+        indexFile.setText(html, "UTF-8")
+    }
+}

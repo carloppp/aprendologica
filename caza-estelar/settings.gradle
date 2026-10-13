@@ -15,4 +15,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "CazaEstelar"
-include ":core", ":android"
+include ":core", ":android", ":web"

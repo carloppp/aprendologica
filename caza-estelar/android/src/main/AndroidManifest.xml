@@ -6,7 +6,7 @@
         android:appCategory="game"
         android:icon="@drawable/ic_launcher"
         android:roundIcon="@drawable/ic_launcher"
-        android:label="Caza Estelar"
+        android:label="Aprendo Lógica"
         android:usesCleartextTraffic="false"
         android:theme="@style/AppTheme">
         <activity

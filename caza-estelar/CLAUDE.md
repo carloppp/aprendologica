@@ -1,8 +1,9 @@
-# Caza Estelar — contexto para Claude Code
+# Aprendo Lógica (antes Caza Estelar) — contexto para Claude Code
 
 ## Antes de modificar código
 
 - Lee `docs/INDICE_DOCUMENTACION.md` y `docs/MIGRACION_A_CLAUDE_CODE.md`.
+- Para la migración vigente a PWA y las decisiones visuales nuevas, lee `docs/PWA_MIGRATION.md`.
 - Para alcance de producto y decisiones confirmadas, consulta `DOCUMENTACION_PROYECTO.md`.
 - Para la integración futura, toma `INTEGRACION_ADMIN_JUEGO.md` como objetivo y `CONTENT_SCHEMA_V1.md` como legado implementado.
 - No presentes una propuesta como si ya estuviera implementada. Contrasta siempre la documentación con el código y los assets.
@@ -11,12 +12,32 @@
 
 ## Resumen del producto
 
-Caza Estelar es un juego educativo Android horizontal para niños de 6 a 8 años de Guatemala y Estados Unidos. Su prioridad es reforzar matemáticas mediante constelaciones, estrellas/niveles y actividades interactivas. Tojil guía la narrativa. El producto debe funcionar en español e inglés y está orientado principalmente a instituciones educativas.
+Aprendo Lógica (nombre anterior: Caza Estelar) es un juego educativo horizontal para niños de 6 a 8 años de Guatemala y Estados Unidos. Su prioridad es reforzar matemáticas mediante constelaciones, estrellas/niveles y actividades interactivas. El destino principal se está migrando a una PWA instalable; Android se conserva durante la transición. La nueva dirección visual usa a Stella y Luma. El producto debe funcionar en español e inglés y está orientado principalmente a instituciones educativas.
 
-## Estado real del código (2026-09-07)
+## Dirección vigente del producto (2026-10-05)
 
-- Prototipo Android con libGDX 1.14.2, Java 17 y Kotlin 2.0.21.
-- Módulos Gradle: `core` y `android`; AGP 8.7.3; compile/target SDK 35; min SDK 26.
+- **Marca:** el producto se llama **Aprendo Lógica** en español e inglés (no se traduce); "Caza Estelar" ya no aparece en la interfaz. Logo, paleta (celeste `#8CCDFD`, amarillo `#FEDD76`, lila `#E1A0F1`, azul marino `#072556`) y alcance del renombrado en `docs/PWA_MIGRATION.md`. Los identificadores técnicos (`com.explorax.cazaestelar`, `CazaEstelarGame`, carpeta `caza-estelar/`) se conservan por ahora.
+- **Plataforma:** PWA horizontal, táctil y adaptable a teléfono, tableta y escritorio. Mantener Android hasta comprobar paridad funcional.
+- **Protagonistas:** Stella y Luma reemplazan al reparto anterior en las escenas nuevas. Stella es una estrella dorada femenina, con pestañas y emblema blanco de cuatro puntas en la frente; viste vestido lavanda sencillo. Luma es un niño luna llena blanco/perlado, con cráteres suaves y emblema creciente cian; viste camisa azul marino y pantalón azul.
+- **Estilo:** 2.5D simplificado, formas grandes, pocos detalles, fondos celestes oscuros, preparado para animación. No convertir las guías en composiciones sobrecargadas.
+- **Tema actual:** `LÓGICA Y CONJUNTOS`.
+- **Selector general:** seis estrellas grandes e independientes: `CONJUNTOS`, `CLASIFICACIÓN`, `RELACIONES`, `PATRONES`, `SECUENCIAS` y `RAZONAMIENTO`. No hay bloqueo secuencial; el usuario puede entrar a cualquiera.
+- **Constelación interna:** al elegir un grupo aparecen seis estrellas pequeñas de un solo tono, el mismo de la estrella principal. Para `CONJUNTOS`: `ELEMENTOS`, `PERTENENCIA`, `SUBCONJUNTOS`, `UNIÓN`, `INTERSECCIÓN` y `DIFERENCIA`.
+- **Progreso visual:** una estrella incompleta permanece apagada y no muestra conexiones. Una estrella completada se enciende. Una línea solo aparece cuando sus dos extremos están completados. Las etiquetas siguen legibles y cada nivel continúa siendo accesible directamente.
+- **Guías visuales:** la vigente es `../guia-visual-2d/` (12 de octubre de 2026), que la app `app/` replica; las anteriores están en `../guia-visual/` y `../images/`. Son referencia de diseño, no assets de runtime: `app/scripts/prepare_visual_assets.py` genera los recortes optimizados en `app/public/assets/`.
+
+## Cliente TypeScript — destino vigente (2026-10-05)
+
+- **ADR 001** (`docs/ADR_001_MOTOR_TYPESCRIPT.md`): el cliente se reescribe en TypeScript en `app/`. Vite genera la PWA y Capacitor 8 genera el APK desde la misma base. Las pantallas nuevas se hacen ahí, no en libGDX.
+- Estructura: `app/src/content/` (contrato v2 portado), `app/src/progress/`, `app/src/gameplay/`, `app/src/session/`, `app/src/screens/` (DOM sobre un escenario de 1920×1080), `app/public/content/catalog.json` (catálogo v2) y `app/android/` (proyecto Capacitor).
+- Comandos en `docs/ENTORNO.md` §Cliente TypeScript: `npm test`, `npm run build`, `npm run android:sync` y luego `gradlew assembleDebug` con **JDK 21**.
+- Mantener las reglas de abajo que aplican igual: bilingüe, validar el catálogo completo, sin PII ni secretos, HTTPS y una mezcla de progreso que nunca reduzca logros.
+- Lo que sigue describe el proyecto libGDX, congelado como **referencia funcional** hasta la paridad. No borrarlo sin una solicitud explícita.
+
+## Estado real del código libGDX (2026-09-07)
+
+- Prototipo multiplataforma con libGDX 1.14.2, Java 17 y Kotlin 2.0.21.
+- Módulos Gradle: `core`, `android` y `web`; AGP 8.7.3; compile/target SDK 35; min SDK 26; web usa gdx-teavm 1.6.1.
 - El código de UI/pantallas permanece mayormente en Java; contratos, reglas, contenido, red y sincronización están mayormente en Kotlin.
 - El catálogo empaquetado es `assets/content/catalog.json`, `schemaVersion: 1`, revisión 1.
 - Mecánicas instaladas: `telescope_hunt` y `multiple_choice`.
@@ -41,6 +62,8 @@ Caza Estelar es un juego educativo Android horizontal para niños de 6 a 8 años
 - `core/src/main/java/com/explorax/cazaestelar/session/` y `core/src/main/kotlin/com/explorax/cazaestelar/session/`: autenticación y selección de implementación.
 - `core/src/main/kotlin/com/explorax/cazaestelar/media/`: descarga y caché de multimedia.
 - `android/src/main/java/com/explorax/cazaestelar/`: launcher y almacenamiento de token con Android Keystore.
+- `web/`: launcher TeaVM, configuración del build JavaScript y shell PWA.
+- `web/src/main/pwa/`: manifiesto, service worker, estilos del contenedor e icono instalable.
 - `assets/`: catálogo, configuración y recursos libGDX.
 - `core/src/test/`: pruebas unitarias e integración del catálogo publicado.
 
@@ -55,8 +78,12 @@ export JAVA_HOME="$PWD/../.build-tools/jdk/jdk-17.0.20+8"
 export ANDROID_HOME="$PWD/../.build-tools/android-sdk"
 ./gradlew :core:test
 ./gradlew :android:assembleDebug
+./gradlew :web:assemblePwa
+./gradlew :web:gdx_teavm_web_js_run
 ./gradlew :android:verifyProductionConfiguration
 ```
+
+El paquete PWA queda en `web/build/dist/js/webapp/`. `assemblePwa` es el comando de distribución: añade manifiesto, registro del service worker y shell instalable después de generar JavaScript. El service worker requiere HTTPS en producción (localhost sirve para desarrollo).
 
 `:android:verifyProductionConfiguration` falla a propósito mientras haya configuración de
 desarrollo (`developmentMode: true`, `remoteEnabled: false`); es el bloqueo de release, no un
@@ -68,6 +95,8 @@ abrir `caza-estelar/` en Android Studio.
 ## Reglas de implementación
 
 - Mantener la resolución virtual 1920×1080, `FitViewport`, orientación horizontal y objetivos táctiles amplios.
+- Mantener `core` portable: no introducir nuevas dependencias directas de `java.security`, `java.nio`, Android SDK o APIs del navegador. Encapsular diferencias por plataforma.
+- Cuando cambie el shell web, ejecutar `:web:assemblePwa`; no editar archivos generados bajo `web/build/`.
 - Mantener texto de interfaz y contenido en español e inglés; no fijar texto educativo en un solo idioma.
 - Kotlin es la dirección elegida para reglas, contratos y servicios. Java/libGDX actual es referencia funcional durante la futura reescritura.
 - Las mecánicas son código instalado; el administrador solo configura contenido y nunca entrega código ejecutable.
@@ -96,4 +125,3 @@ No resolver silenciosamente las contradicciones registradas en `docs/MIGRACION_A
 - Español e inglés revisados si cambió UI o contenido.
 - Sin secretos ni PII; configuración release segura.
 - Documentación actualizada cuando cambien arquitectura, contrato, comandos o una decisión cerrada.
-

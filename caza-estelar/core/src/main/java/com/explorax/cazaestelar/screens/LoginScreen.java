@@ -7,11 +7,14 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Scaling;
 import com.explorax.cazaestelar.navigation.GameNavigator;
 import com.explorax.cazaestelar.session.PlayerSession;
 import com.explorax.cazaestelar.settings.AppSettings;
@@ -22,14 +25,17 @@ import com.explorax.cazaestelar.ui.UiResources;
 import com.explorax.cazaestelar.ui.VisualAssets;
 
 public final class LoginScreen extends BaseScreen {
+    private static final float FIELD_WIDTH = 498f;
+
     public LoginScreen(GameNavigator navigator, UiResources ui, AssetManager assets,
                        AppSettings settings) {
         ScreenDecor.addLoginBackground(stage, assets, ui.skin(), WORLD_WIDTH, WORLD_HEIGHT);
 
         Table panel = new Table();
-        panel.setBounds(1215f, 125f, 595f, 830f);
-        panel.setBackground(ScreenDecor.drawable(assets, VisualAssets.GLASS_PANEL));
-        panel.pad(62f);
+        panel.setBounds(1150f, 70f, 690f, 940f);
+        panel.setBackground(ScreenDecor.loginCard(assets));
+        // 32 px de la tarjeta son sombra; el resto es margen interior.
+        panel.pad(84f, 96f, 104f, 96f);
         panel.getColor().a = 0f;
         panel.moveBy(55f, 0f);
         panel.addAction(Actions.sequence(
@@ -39,30 +45,44 @@ public final class LoginScreen extends BaseScreen {
             )
         ));
 
-        Label brand = new Label("Explorax", ui.skin(), "subtitle");
-        brand.setColor(new Color(0.44f, 0.88f, 1f, 1f));
-        Label title = new Label(settings.text("Caza estelar", "Star Hunt"), ui.skin(), "title");
-        title.setFontScale(0.78f);
+        Image logotype = new Image(assets.get(VisualAssets.BRAND_LOGOTYPE, Texture.class));
+        logotype.setScaling(Scaling.fit);
 
-        TextField username = new TextField("", ui.skin());
-        username.setMessageText(settings.text("Correo", "Email"));
+        Label greeting = new Label(settings.text("¡Te damos la bienvenida!", "Welcome!"), ui.skin(), "subtitle");
+        greeting.setColor(ScreenDecor.BRAND_NAVY);
+
+        Label hint = new Label(
+            settings.text("Inicia sesión para seguir explorando", "Sign in to keep exploring"),
+            ui.skin()
+        );
+        hint.setColor(ScreenDecor.BRAND_MUTED);
+        hint.setFontScale(0.6f);
+        greeting.setAlignment(Align.center);
+        hint.setAlignment(Align.center);
+
+        Label usernameLabel = fieldLabel(settings.text("Correo", "Email"), ui);
+        Label passwordLabel = fieldLabel(settings.text("Contraseña", "Password"), ui);
+        TextField.TextFieldStyle fieldStyle = ScreenDecor.lightFieldStyle(assets, ui.skin());
+
+        TextField username = new TextField("", fieldStyle);
+        username.setMessageText(settings.text("tu@correo.com", "you@email.com"));
         username.setMaxLength(120);
 
-        TextField password = new TextField("", ui.skin());
-        password.setMessageText(settings.text("Contrase\u00f1a", "Password"));
+        TextField password = new TextField("", fieldStyle);
+        password.setMessageText("\u2022\u2022\u2022\u2022\u2022\u2022");
         password.setPasswordMode(true);
         password.setPasswordCharacter('\u2022');
         password.setMaxLength(40);
 
         Label error = new Label("", ui.skin());
-        error.setColor(new Color(1f, 0.55f, 0.52f, 1f));
-        error.setFontScale(0.62f);
+        error.setColor(new Color(0.78f, 0.19f, 0.25f, 1f));
+        error.setFontScale(0.56f);
         error.setWrap(true);
-        error.setAlignment(com.badlogic.gdx.utils.Align.center);
+        error.setAlignment(Align.center);
 
         TextButton enter = new TextButton(
             settings.text("Iniciar sesi\u00f3n", "Sign in"),
-            ScreenDecor.primaryButtonStyle(assets, ui.skin())
+            ScreenDecor.brandButtonStyle(assets, ui.skin())
         );
         enter.addListener(new ClickListener() {
             @Override
@@ -86,14 +106,31 @@ public final class LoginScreen extends BaseScreen {
             }
         });
 
-        panel.add(brand).padBottom(14f).row();
-        panel.add(title).padBottom(50f).row();
-        panel.add(username).width(475f).height(82f).padBottom(24f).row();
-        panel.add(password).width(475f).height(82f).padBottom(16f).row();
-        panel.add(error).width(475f).height(62f).padBottom(16f).row();
-        panel.add(enter).width(475f).height(92f);
+        Label footer = new Label("Explorax", ui.skin());
+        footer.setColor(new Color(ScreenDecor.BRAND_MUTED.r, ScreenDecor.BRAND_MUTED.g, ScreenDecor.BRAND_MUTED.b, 0.7f));
+        footer.setFontScale(0.5f);
+        footer.setAlignment(Align.center);
+
+        panel.defaults().width(FIELD_WIDTH);
+        panel.add(logotype).width(400f).height(142f).padBottom(26f).row();
+        panel.add(greeting).padBottom(4f).row();
+        panel.add(hint).padBottom(34f).row();
+        panel.add(usernameLabel).padBottom(8f).row();
+        panel.add(username).height(80f).padBottom(22f).row();
+        panel.add(passwordLabel).padBottom(8f).row();
+        panel.add(password).height(80f).row();
+        panel.add(error).height(58f).row();
+        panel.add(enter).height(100f).row();
+        panel.add(footer).padTop(20f);
         stage.addActor(panel);
         SettingsPanel.addTo(stage, settings, ui.skin(), WORLD_HEIGHT, navigator::showLogin);
+    }
+
+    private static Label fieldLabel(String text, UiResources ui) {
+        Label label = new Label(text, ui.skin());
+        label.setColor(ScreenDecor.BRAND_NAVY);
+        label.setFontScale(0.58f);
+        return label;
     }
 
     private void playLoginTransition(Table panel, TextButton enter, UiResources ui,
