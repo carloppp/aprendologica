@@ -15,6 +15,7 @@ export function rewardScreen(result: {
   color: string;
   stars: number;
   passed: boolean;
+  /** La estrella del nivel brilla más que antes (subió de 0, 1 o 2 estrellas). */
   newlyLit: boolean;
 }): Screen {
   return (stage, app) => {
@@ -26,7 +27,7 @@ export function rewardScreen(result: {
     const showNext = result.passed && next !== undefined;
 
     sound.music("sky");
-    sound.play(result.passed ? "complete" : "tryAgain");
+    sound.play(result.passed ? "victory" : "tryAgain");
     // Cada estrella ganada suena cuando termina de aparecer (animación `pop` con `--delay`).
     for (let i = 0; i < Math.min(result.stars, MAXIMUM_STARS); i++) sound.playStar(i, 0.55 + i * 0.25);
 
@@ -56,9 +57,13 @@ export function rewardScreen(result: {
             t(
               result.passed
                 ? result.newlyLit
-                  ? { es: "¡Encendiste una estrella de la constelación!", en: "You lit a star in the constellation!" }
+                  ? result.stars >= MAXIMUM_STARS
+                    ? { es: "¡Tu estrella brilla con toda su luz!", en: "Your star shines with all its light!" }
+                    : { es: "¡Tu estrella brilla más en la constelación!", en: "Your star shines brighter in the constellation!" }
                   : { es: "¡Tu estrella sigue brillando!", en: "Your star keeps shining!" }
-                : { es: "Practica otra vez para encender la estrella.", en: "Practice again to light the star." }
+                : result.newlyLit
+                  ? { es: "¡Tu estrella empezó a brillar! Juega otra vez para que brille más.", en: "Your star started to shine! Play again to make it brighter." }
+                  : { es: "Practica otra vez para encender la estrella.", en: "Practice again to light the star." }
             )
           ),
           h(

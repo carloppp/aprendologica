@@ -36,6 +36,12 @@ export const INTRO_STORY: StoryDefinition = {
   }
 };
 
+/**
+ * Historias en cómic visibles. Ocultas por ahora (decisión del 13 de octubre de 2026): ni se
+ * muestran al primer acceso ni aparece el botón para verlas. Poner en `true` para activarlas.
+ */
+export const STORIES_ENABLED = false;
+
 export function storyProgress(): StoryProgress {
   return new StoryProgress(safeLocalStorage() ?? { getItem: () => null, setItem: () => undefined });
 }

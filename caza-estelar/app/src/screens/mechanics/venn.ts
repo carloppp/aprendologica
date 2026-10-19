@@ -24,17 +24,21 @@ export function setLabel(text: string, x: number, y: number, color: string): HTM
 
 /** Insignia que muestra la propiedad de un conjunto: una mancha de color o el contorno de una forma. */
 export function propertyBadge(filter: PieceFilter, x: number, y: number, t: (text: LocalizedText) => string): HTMLElement {
-  const badge = h("div", { class: "property-badge", style: `left:${x}px;top:${y}px` });
+  return h(
+    "div",
+    { class: "property-badge", style: `left:${x}px;top:${y}px` },
+    propertyIcon(filter, 64),
+    h("span", { class: "property-text" }, t(filterName(filter)))
+  );
+}
+
+/** Dibujo de una propiedad: el contorno de la forma (del color, si lo tiene) o una mancha de color. */
+export function propertyIcon(filter: PieceFilter, size: number): Element {
   if (filter.color) {
     const color = PIECE_PALETTE[filter.color];
-    badge.append(
-      filter.shape
-        ? shapeOutline(filter.shape, 64, color.fill)
-        : h("span", { class: "color-dot", style: `background:${color.fill};border-color:${color.light}` })
-    );
-  } else if (filter.shape) {
-    badge.append(shapeOutline(filter.shape, 64));
+    return filter.shape
+      ? shapeOutline(filter.shape, size, color.fill)
+      : h("span", { class: "color-dot", style: `background:${color.fill};border-color:${color.light};width:${size - 4}px;height:${size - 4}px` });
   }
-  badge.append(h("span", { class: "property-text" }, t(filterName(filter))));
-  return badge;
+  return shapeOutline(filter.shape!, size);
 }

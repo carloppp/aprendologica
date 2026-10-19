@@ -2,13 +2,14 @@ import type { Screen } from "../app";
 import { ProgressStore } from "../progress/progressStore";
 import { CODE_MAX_LENGTH } from "../session/authentication";
 import { safeLocalStorage } from "../settings";
+import { characterSprite, fadeToPose, setMood, type Pose } from "../ui/characters";
 import { h, STAR_PATH, svg } from "../ui/dom";
 import { icon } from "../ui/icons";
 import { ambientLayer, paintedLights, sparkle } from "../ui/scenery";
 import { sound } from "../audio/sound";
 import { background, languageToggle, soundToggle } from "./common";
 import { selectorScreen } from "./selector";
-import { INTRO_STORY, storyProgress, storyScreen } from "./story";
+import { INTRO_STORY, STORIES_ENABLED, storyProgress, storyScreen } from "./story";
 
 /** Borrador para no perder lo escrito cuando se redibuja al cambiar el idioma. */
 const draft = { code: "" };
@@ -45,10 +46,11 @@ export const accessScreen: Screen = (stage, app) => {
     if (!result.ok) return void (error.textContent = t(result.message));
     draft.code = "";
     app.enrollment.markReturning();
+    cast.celebrate();
     app.session = result.session;
     app.progress = new ProgressStore(safeLocalStorage() ?? { getItem: () => null, setItem: () => undefined }, result.session.playerKey);
     // La primera vez que entra un estudiante ve la historia antes del selector.
-    app.go(storyProgress().hasSeen(result.session.playerKey, INTRO_STORY.id) ? selectorScreen : storyScreen(INTRO_STORY, selectorScreen));
+    app.go(!STORIES_ENABLED || storyProgress().hasSeen(result.session.playerKey, INTRO_STORY.id) ? selectorScreen : storyScreen(INTRO_STORY, selectorScreen));
   };
 
   const title = app.enrollment.returning ? { es: "¡HOLA DE NUEVO!", en: "HELLO AGAIN!" } : { es: "¡HOLA!", en: "HELLO!" };
@@ -69,19 +71,24 @@ export const accessScreen: Screen = (stage, app) => {
     divider()
   );
 
+  const cast = loginCast();
+
   stage.append(
     h(
       "div",
       { class: "screen access" },
-      background("assets/images/bg-observatory.jpg", "is-drifting-soft"),
+      background("assets/images/bg-login.jpg", "is-drifting-soft"),
       paintedLights({
-        stars: [[190, 148], [343, 182], [230, 208], [298, 222], [215, 262], [320, 290], [275, 310], [490, 123], [580, 153], [453, 186], [568, 232], [508, 256], [728, 186], [680, 243], [782, 245], [610, 272], [720, 295], [637, 318], [660, 358]],
-        lamps: [[55, 240]],
+        // Coordenadas de `fondos/fondo-observatorio-login-zona-segura-v2` (1672 × 941).
+        stars: [[363, 248], [450, 245], [417, 272], [345, 300], [433, 328], [395, 345], [541, 122], [617, 150], [500, 176], [603, 215], [547, 237], [805, 186], [762, 240], [850, 238], [705, 272], [800, 285], [730, 307], [754, 342]],
+        lamps: [[103, 190]],
         lampRadius: 150,
-        glows: [{ at: [680, 585], rx: 300, ry: 80, color: "#5FE3FF" }],
-        twinkles: [[712, 105], [455, 305], [258, 132], [1032, 235], [1040, 466], [1590, 380], [1413, 690], [1550, 105], [1525, 305], [1245, 580]]
+        glows: [{ at: [567, 600], rx: 300, ry: 60, color: "#5FE3FF" }],
+        twinkles: [[305, 72], [760, 108], [295, 152], [1015, 197], [1170, 130], [1357, 202], [1582, 236], [240, 247], [640, 328], [1450, 262]]
       }),
       ambientLayer({ seed: 9, shootingStars: 2, motes: 8, skyHeight: 420 }),
+      cast.stella,
+      cast.luma,
       h("img", { class: "corner-logo", src: "assets/branding/logo.png", alt: "Aprendo Lógica" }),
       form,
       soundToggle(app),
@@ -90,7 +97,67 @@ export const accessScreen: Screen = (stage, app) => {
   );
   sound.music("sky");
   requestAnimationFrame(() => input.focus({ preventScroll: true }));
+  return cast.stop;
 };
+
+/**
+ * Stella y Luma juntas a la izquierda de la tarjeta, conversando: cada escena Stella cambia de pose
+ * y Luma le responde un momento después. Las poses cambian con un fundido cruzado.
+ */
+function loginCast() {
+  const stella = characterSprite("stella", "waving", "login-character");
+  const luma = characterSprite("luma", "clapping", "login-character");
+  // [pose de Stella, respuesta de Luma]
+  const scenes: [Pose, Pose][] = [
+    ["waving", "clapping"],
+    ["presenting", "asking"],
+    ["thinking", "pointing"],
+    ["pointing", "holding"],
+    ["celebrating", "celebrating"],
+    ["holding", "thinking"]
+  ];
+  let scene = 0;
+  let done = false;
+  let reply = 0;
+  const play = () => {
+    if (done) return;
+    scene = (scene + 1) % scenes.length;
+    const [stellaPose, lumaPose] = scenes[scene]!;
+    fadeToPose(stella, stellaPose);
+    window.clearTimeout(reply);
+    reply = window.setTimeout(() => {
+      if (done) return;
+      fadeToPose(luma, lumaPose);
+      // Luma da un saltito al responder; en la celebración saltan las dos.
+      setMood(luma, lumaPose === "celebrating" ? "joy" : "surprised");
+      if (lumaPose === "celebrating") setMood(stella, "joy");
+    }, 700);
+  };
+  const cycle = window.setInterval(play, 3400);
+
+  const react = (sprite: HTMLElement, pose: Pose) => () => {
+    if (done) return;
+    sound.play("tap");
+    fadeToPose(sprite, pose);
+    setMood(sprite, "joy");
+  };
+  stella.addEventListener("click", react(stella, "waving"));
+  luma.addEventListener("click", react(luma, "clapping"));
+
+  const stop = () => {
+    done = true;
+    window.clearInterval(cycle);
+    window.clearTimeout(reply);
+  };
+  const celebrate = () => {
+    stop();
+    fadeToPose(stella, "celebrating", 250);
+    fadeToPose(luma, "celebrating", 250);
+    setMood(stella, "joy");
+    setMood(luma, "joy");
+  };
+  return { stella, luma, stop, celebrate };
+}
 
 function shiningStar(): SVGSVGElement {
   const root = svg("svg", { class: "access-star", viewBox: "-2.2 -1.4 4.4 2.6", "aria-hidden": "true" });

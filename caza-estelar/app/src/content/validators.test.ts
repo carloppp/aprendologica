@@ -12,6 +12,7 @@ function level(id: string, overrides: Partial<LevelDefinition> = {}): LevelDefin
     version: 1,
     order: 1,
     title: { es: "Nivel", en: "Level" },
+    description: { es: "", en: "" },
     instruction: { es: "Instrucción", en: "Instruction" },
     mechanic: telescope,
     unlock: { prerequisiteLevelIds: [] },

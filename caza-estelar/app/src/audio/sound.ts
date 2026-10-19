@@ -14,7 +14,15 @@ export type Effect =
   | "lit"
   | "whoosh"
   | "warp"
-  | "soon";
+  | "soon"
+  // Puente de PATRONES.
+  | "tileFly"
+  | "tileLand"
+  | "tileRemove"
+  | "tilesOff"
+  | "portal"
+  // Fin de un nivel superado (pantalla de recompensa).
+  | "victory";
 
 const MASTER_GAIN = 0.9;
 const MUSIC_GAIN = 0.32;
@@ -145,6 +153,21 @@ export class SoundEngine {
   }
 
   /**
+   * Paso de Stella sobre la baldosa número `index` del puente: una nota de marimba que sube por la
+   * pentatónica de do mayor, así el cruce suena como una escalera musical hasta el portal.
+   */
+  bridgeStep(index: number, delaySeconds = 0): void {
+    const ctx = this.context;
+    if (!ctx || !this.audible || ctx.state !== "running") return;
+    const at = ctx.currentTime + 0.01 + delaySeconds;
+    const notes = [72, 74, 76, 79, 81];
+    const midi = notes[index % notes.length]! + 12 * Math.min(1, Math.floor(index / notes.length));
+    this.voice({ freq: midiToHz(midi), at, type: "triangle", attack: 0.004, decay: 0.22, gain: 0.08, space: 0.25 });
+    this.voice({ freq: midiToHz(midi + 24), at, type: "sine", attack: 0.002, decay: 0.08, gain: 0.02 });
+    this.noise({ at, duration: 0.05, filter: "lowpass", from: 900, to: 300, gain: 0.05, shape: "hit" });
+  }
+
+  /**
    * Titileo de una estrella de la constelación al aparecer: una nota aguda que parpadea con su
    * octava, suave y con eco. Las estrellas suben por la pentatónica de re menor (la tonalidad de la
    * música épica) y suenan del lado de la pantalla donde aparecen (`pan`, de -1 a 1).
@@ -265,7 +288,9 @@ export class SoundEngine {
   }
 
   private renderBar(bar: Bar, start: number, beat: number, out: GainNode): void {
-    const length = beat * 4;
+    const definition = this.theme ? THEMES[this.theme] : undefined;
+    const length = beat * (definition?.beatsPerBar ?? 4);
+    const timbre = definition?.voice ?? "musicbox";
     // Colchón: senos levemente desafinados, con entrada y salida lentas.
     bar.pad.forEach((midi, i) => {
       for (const detune of [-6, 6]) {
@@ -273,14 +298,34 @@ export class SoundEngine {
       }
     });
     bar.bass.forEach((note) => this.voice({ freq: midiToHz(note.midi), at: start + note.beat * beat, type: "sine", attack: 0.02, decay: beat * 1.8, gain: 0.16 }, out));
-    bar.plucks.forEach((note, i) =>
-      this.voice({ freq: midiToHz(note.midi), at: start + note.beat * beat, type: "triangle", attack: 0.005, decay: 0.35, gain: i % 2 ? 0.035 : 0.05, space: 0.3, pan: i % 2 ? 0.35 : -0.35 }, out)
-    );
-    // Caja de música: un seno con un armónico suave y cola larga.
+    bar.plucks.forEach((note, i) => {
+      const at = start + note.beat * beat;
+      if (timbre === "bells") {
+        // Campanas de cristal: seno con un armónico inarmónico corto, que suena a vidrio.
+        this.voice({ freq: midiToHz(note.midi), at, type: "sine", attack: 0.003, decay: 0.7, gain: 0.032, space: 0.5, pan: i % 2 ? 0.4 : -0.4 }, out);
+        this.voice({ freq: midiToHz(note.midi) * 2.76, at, type: "sine", attack: 0.002, decay: 0.12, gain: 0.008, space: 0.5 }, out);
+      } else if (timbre === "flute") {
+        // "Pa-pa" de las islas: cuerdas pulsadas cortas y alegres.
+        this.voice({ freq: midiToHz(note.midi), at, type: "triangle", attack: 0.004, decay: 0.18, gain: 0.04, space: 0.2, pan: i % 2 ? 0.3 : -0.3 }, out);
+      } else {
+        this.voice({ freq: midiToHz(note.midi), at, type: "triangle", attack: 0.005, decay: 0.35, gain: i % 2 ? 0.035 : 0.05, space: 0.3, pan: i % 2 ? 0.35 : -0.35 }, out);
+      }
+    });
     bar.melody.forEach((note) => {
       const at = start + note.beat * beat;
-      this.voice({ freq: midiToHz(note.midi), at, type: "sine", attack: 0.008, decay: note.length * beat + 0.8, gain: 0.09, space: 0.55 }, out);
-      this.voice({ freq: midiToHz(note.midi + 12), at, type: "sine", attack: 0.004, decay: 0.4, gain: 0.025, space: 0.55 }, out);
+      if (timbre === "flute") {
+        // Flauta: entrada suave, cuerpo de triángulo y un soplo de octava baja.
+        this.voice({ freq: midiToHz(note.midi), at, type: "triangle", attack: 0.05, decay: note.length * beat + 0.3, gain: 0.07, space: 0.45, detune: 4 }, out);
+        this.voice({ freq: midiToHz(note.midi - 12), at, type: "sine", attack: 0.06, decay: note.length * beat, gain: 0.025, space: 0.45 }, out);
+      } else if (timbre === "bells") {
+        // Celesta: brillo agudo con cola larga.
+        this.voice({ freq: midiToHz(note.midi), at, type: "sine", attack: 0.004, decay: note.length * beat + 1.2, gain: 0.08, space: 0.65 }, out);
+        this.voice({ freq: midiToHz(note.midi + 19), at, type: "sine", attack: 0.002, decay: 0.3, gain: 0.015, space: 0.65 }, out);
+      } else {
+        // Caja de música: un seno con un armónico suave y cola larga.
+        this.voice({ freq: midiToHz(note.midi), at, type: "sine", attack: 0.008, decay: note.length * beat + 0.8, gain: 0.09, space: 0.55 }, out);
+        this.voice({ freq: midiToHz(note.midi + 12), at, type: "sine", attack: 0.004, decay: 0.4, gain: 0.025, space: 0.55 }, out);
+      }
     });
     bar.twinkles.forEach((note) =>
       this.voice({ freq: midiToHz(note.midi), at: start + note.beat * beat, type: "sine", attack: 0.01, decay: 1.4, gain: 0.03, space: 0.9, pan: Math.random() * 1.6 - 0.8 }, out)
@@ -531,6 +576,54 @@ const EFFECTS: Record<Effect, (engine: SoundEngine, at: number) => void> = {
   soon: (e, at) => {
     e.voice({ freq: midiToHz(72), at, type: "sine", decay: 0.3, gain: 0.08 });
     e.voice({ freq: midiToHz(76), at: at + 0.14, type: "sine", decay: 0.5, gain: 0.08, space: 0.4 });
+  },
+  // Una pieza sale volando de la bandeja hacia su baldosa: silbido corto que sube.
+  tileFly: (e, at) => {
+    e.sweep(at, 0.42, 600, 3200, 1400, 0.05);
+    e.voice({ freq: midiToHz(76), glideTo: midiToHz(88), at, type: "sine", attack: 0.02, decay: 0.32, gain: 0.05, space: 0.3 });
+  },
+  // La baldosa cae en su lugar: golpe sólido y un tintineo de cristal.
+  tileLand: (e, at) => {
+    e.voice({ freq: 220, glideTo: 110, at, type: "sine", attack: 0.002, decay: 0.16, gain: 0.2 });
+    e.noise({ at, duration: 0.08, filter: "lowpass", from: 1400, to: 400, gain: 0.07, shape: "hit" });
+    e.voice({ freq: midiToHz(91), at: at + 0.02, type: "triangle", decay: 0.35, gain: 0.05, space: 0.4 });
+    e.voice({ freq: midiToHz(98), at: at + 0.05, type: "sine", decay: 0.3, gain: 0.03, space: 0.4 });
+  },
+  // Se quita una pieza del puente: pop que sube, como despegarla.
+  tileRemove: (e, at) => {
+    e.voice({ freq: 420, glideTo: 980, at, type: "sine", attack: 0.004, decay: 0.12, gain: 0.12 });
+    e.voice({ freq: 1960, at: at + 0.05, type: "sine", decay: 0.06, gain: 0.025 });
+  },
+  // Las piezas equivocadas saltan fuera del puente: "boing" suave que baja.
+  tilesOff: (e, at) => {
+    e.voice({ freq: 520, glideTo: 260, at, type: "triangle", attack: 0.01, decay: 0.28, gain: 0.09 });
+    e.voice({ freq: 390, glideTo: 195, at: at + 0.12, type: "triangle", attack: 0.01, decay: 0.3, gain: 0.07 });
+    e.sweep(at, 0.3, 1800, 900, 500, 0.03);
+  },
+  // Stella llega al portal: brillo mágico que crece y un acorde de campanas.
+  portal: (e, at) => {
+    e.noise({ at, duration: 0.7, filter: "bandpass", from: 800, peak: 4200, to: 6000, gain: 0.05, shape: "swell", space: 0.6 });
+    [72, 79, 84, 88, 91].forEach((midi, i) => e.voice({ freq: midiToHz(midi), at: at + 0.55 + i * 0.03, type: "sine", attack: 0.01, decay: 1.6, gain: 0.07, space: 0.7, pan: -0.4 + i * 0.2 }));
+    e.shimmer(at + 0.6, 10, 0.035);
+  },
+  // Nivel superado: fanfarria de metales (I–IV–V–I), timbal, platillo que crece y campanas.
+  victory: (e, at) => {
+    const beat = 0.16;
+    const chords = [[60, 64, 67], [65, 69, 72], [67, 71, 74], [72, 76, 79]];
+    chords.forEach((chord, i) => {
+      const when = at + i * beat * (i === 3 ? 1.5 : 1);
+      chord.forEach((midi, k) =>
+        e.voice({ freq: midiToHz(midi), at: when, type: "sawtooth", attack: 0.02, decay: i === 3 ? 1.8 : 0.28, gain: i === 3 ? 0.035 : 0.03, space: 0.35, pan: -0.3 + k * 0.3, detune: k * 4 })
+      );
+      e.voice({ freq: midiToHz(chord[0]! - 24), at: when, type: "sine", attack: 0.005, decay: 0.3, gain: 0.16 });
+    });
+    const final = at + beat * 4.5;
+    // Melodía triunfal encima del último acorde.
+    arpeggio(e, at, [72, 76, 79, 84], beat, 0.08, "triangle", 0.4);
+    e.noise({ at: final - 0.35, duration: 0.45, filter: "highpass", from: 3000, to: 9000, gain: 0.05, shape: "swell" });
+    e.noise({ at: final, duration: 1.4, filter: "highpass", from: 6000, to: 3000, gain: 0.06, shape: "hit", space: 0.5 });
+    [84, 88, 91, 96].forEach((midi, i) => e.voice({ freq: midiToHz(midi), at: final + i * 0.09, type: "sine", decay: 1.4, gain: 0.07, space: 0.7 }));
+    e.shimmer(final + 0.2, 14, 0.03);
   }
 };
 

@@ -28,31 +28,47 @@ describe("published catalog", () => {
       expect(level.instruction.en.trim()).not.toBe("");
     }
   });
+
+  it("describes every level for its panel, in both languages", () => {
+    for (const level of catalog.constellations.flatMap((it) => it.levels)) {
+      expect(level.description.es.trim()).not.toBe("");
+      expect(level.description.en.trim()).not.toBe("");
+      expect(level.description.en).not.toBe(level.description.es);
+    }
+  });
 });
 
 describe("constellationStars", () => {
   const conjuntos = catalog.constellations[0]!;
+  const ids = conjuntos.levels.map((it) => it.id);
   const versionOf = (levelId: string) => conjuntos.levels.find((it) => it.id === levelId)!.version;
-  const done = (levelId: string, levelVersion = versionOf(levelId)) => ({
-    levelId, levelVersion, completed: true, bestScore: 100, attemptsUsed: 1, lastDurationMs: 0, updatedAtEpochMs: 0
+  const scored = (levelId: string, bestScore: number, levelVersion = versionOf(levelId)) => ({
+    levelId, levelVersion, completed: bestScore >= 60, bestScore, attemptsUsed: 1, lastDurationMs: 0, updatedAtEpochMs: 0
+  });
+  const progressOf = (entries: [number, number][]) =>
+    Object.fromEntries(entries.map(([index, score]) => [ids[index]!, scored(ids[index]!, score)]));
+
+  it("lights each star by the stars earned in its level", () => {
+    const { stars } = constellationStars(conjuntos, progressOf([[0, 100], [1, 75], [2, 40]]));
+    expect(stars.map((it) => it.stars)).toEqual([3, 2, 1, 0, 0, 0]);
+    expect(stars.map((it) => it.completed)).toEqual([true, true, false, false, false, false]);
   });
 
-  it("links only consecutive completed stars", () => {
-    const ids = conjuntos.levels.map((it) => it.id);
-    const progress = Object.fromEntries([ids[0]!, ids[1]!, ids[3]!].map((id) => [id, done(id)]));
-    const { stars, links } = constellationStars(conjuntos, progress);
-    expect(stars.map((it) => it.completed)).toEqual([true, true, false, true, false, false]);
-    expect(links).toEqual([[0, 1]]);
+  it("links only stars with at least two stars, weak unless both have three", () => {
+    const { links } = constellationStars(conjuntos, progressOf([[0, 100], [1, 100], [2, 75], [3, 40]]));
+    expect(links).toEqual([
+      { from: 0, to: 1, strength: 3 },
+      { from: 1, to: 2, strength: 2 }
+    ]);
   });
 
   it("closes the ring between the last and the first star", () => {
-    const ids = conjuntos.levels.map((it) => it.id);
-    const progress = Object.fromEntries([ids[0]!, ids[5]!].map((id) => [id, done(id)]));
-    expect(constellationStars(conjuntos, progress).links).toEqual([[5, 0]]);
+    expect(constellationStars(conjuntos, progressOf([[0, 100], [5, 100]])).links).toEqual([{ from: 5, to: 0, strength: 3 }]);
   });
 
   it("ignores progress from an older level version", () => {
-    const id = conjuntos.levels[0]!.id;
-    expect(constellationStars(conjuntos, { [id]: done(id, versionOf(id) - 1) }).stars[0]?.completed).toBe(false);
+    const id = ids[0]!;
+    const { stars } = constellationStars(conjuntos, { [id]: scored(id, 100, versionOf(id) - 1) });
+    expect(stars[0]).toEqual({ levelId: id, stars: 0, completed: false });
   });
 });

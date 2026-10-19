@@ -16,7 +16,7 @@ describe("música generativa", () => {
     expect(midiToHz(60)).toBeCloseTo(261.63, 1);
   });
 
-  for (const theme of ["sky", "play", "epic"] as MusicTheme[]) {
+  for (const theme of ["sky", "play", "epic", "observatory", "islands"] as MusicTheme[]) {
     it(`el tema ${theme} recorre su ciclo de acordes`, () => {
       const chords = THEMES[theme].chords;
       expect(composeBar(theme, 0, seeded(1)).pad).toEqual(chords[0]);
@@ -55,8 +55,16 @@ describe("música generativa", () => {
     expect(composeBar("sky", 0, seeded(1)).ostinato).toEqual([]);
   });
 
-  it("solo el tema de juego lleva arpegio de fondo", () => {
+  it("cada tema de nivel lleva su propio acompañamiento", () => {
     expect(composeBar("sky", 0, seeded(3)).plucks).toEqual([]);
     expect(composeBar("play", 0, seeded(3)).plucks).toHaveLength(8);
+    // Observatorio: corcheas que suben y bajan por el acorde.
+    const crystal = composeBar("observatory", 0, seeded(3)).plucks.map((it) => it.midi);
+    expect(crystal).toHaveLength(8);
+    expect(crystal.slice(0, 4)).toEqual([...crystal.slice(0, 4)].sort((a, b) => a - b));
+    // Islas: vals con "um-pa-pa": bajo en el 1 y acorde en los tiempos 2 y 3.
+    const waltz = composeBar("islands", 0, seeded(3));
+    expect(waltz.bass.map((it) => it.beat)).toEqual([0]);
+    expect([...new Set(waltz.plucks.map((it) => it.beat))]).toEqual([1, 2]);
   });
 });

@@ -7,7 +7,7 @@ import { accessScreen } from "./access";
 import { sound } from "../audio/sound";
 import { backButton, languageToggle, soundToggle, titlePill } from "./common";
 import { constellationScreen } from "./constellation";
-import { INTRO_STORY, storyScreen } from "./story";
+import { INTRO_STORY, STORIES_ENABLED, storyScreen } from "./story";
 import { icon } from "../ui/icons";
 
 /**
@@ -22,7 +22,7 @@ export const selectorScreen: Screen = (stage, app) => {
   const screen = h("div", { class: "screen selector" });
 
   const stars = THEME_GROUPS.map((group, index) => {
-    const constellation = app.catalog?.constellations.find((it) => it.id === group.constellationId);
+    const constellation = group.comingSoon ? undefined : app.catalog?.constellations.find((it) => it.id === group.constellationId);
     const position = THEME_LAYOUT[index]!;
     return h(
       "button",
@@ -66,17 +66,21 @@ export const selectorScreen: Screen = (stage, app) => {
         app.progress = undefined;
         app.go(accessScreen);
       }),
-      // Volver a ver la historia de inicio.
-      h(
-        "button",
-        {
-          class: "round-button story-button",
-          type: "button",
-          "aria-label": t({ es: "Ver la historia", en: "Watch the story" }),
-          onclick: () => !traveling && app.go(storyScreen(INTRO_STORY, selectorScreen))
-        },
-        icon("book", 64)
-      ),
+      // Volver a ver la historia de inicio (oculto mientras las historias estén desactivadas).
+      ...(STORIES_ENABLED
+        ? [
+          h(
+            "button",
+            {
+              class: "round-button story-button",
+              type: "button",
+              "aria-label": t({ es: "Ver la historia", en: "Watch the story" }),
+              onclick: () => !traveling && app.go(storyScreen(INTRO_STORY, selectorScreen))
+            },
+            icon("book", 64)
+          )
+          ]
+        : []),
       soundToggle(app),
       languageToggle(app)
   );

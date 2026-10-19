@@ -1,7 +1,7 @@
 import type { LocalizedText, Piece } from "../../content/model";
 import { h } from "../../ui/dom";
 import { pieceName, pieceSvg } from "../../ui/pieces";
-import { tapOrDrag, type StagePoint } from "../../ui/pointer";
+import { tapOrDrag, toStage, type StagePoint } from "../../ui/pointer";
 
 /** Zona elíptica del tablero, en coordenadas de escenario. */
 export interface Zone {
@@ -156,5 +156,123 @@ export class SelectionBoard {
   private updateLabel(index: number): void {
     const token = this.tokens[index]!;
     token.element.setAttribute("aria-pressed", String(token.selected));
+  }
+}
+
+/**
+ * Fichas que se reparten entre varias regiones (aros de FORMAR CONJUNTOS, regiones de un diagrama de
+ * Venn). Se arrastran a su región, o se toca la ficha para elegirla y luego la región. Tocar una
+ * ficha ya colocada la devuelve a su lugar. La región -1 es "fuera" (su lugar de origen).
+ */
+export class SortBoard {
+  private readonly tokens: { element: HTMLElement; home: StagePoint; region: number }[] = [];
+  private picked = -1;
+
+  constructor(
+    private readonly stage: HTMLElement,
+    layer: HTMLElement,
+    private readonly options: {
+      /** Región bajo un punto del escenario, o -1 si queda fuera de todas. */
+      regionAt: (point: StagePoint) => number;
+      /** Posiciones de `count` fichas dentro de una región. */
+      slots: (region: number, count: number) => StagePoint[];
+      zoneScale: number;
+      enabled: () => boolean;
+      onChange?: () => void;
+    }
+  ) {
+    // Con una ficha elegida, tocar una región la lleva ahí.
+    layer.addEventListener("click", (event) => {
+      if (this.picked < 0 || !this.options.enabled() || (event.target as Element).closest(".token")) return;
+      const region = this.options.regionAt(toStage(this.stage, event.clientX, event.clientY));
+      if (region >= 0) this.move(this.picked, region);
+    });
+  }
+
+  add(element: HTMLElement, home: StagePoint): void {
+    const index = this.tokens.length;
+    this.tokens.push({ element, home, region: -1 });
+    placeAt(element, home);
+    tapOrDrag(element, this.stage, {
+      enabled: this.options.enabled,
+      onTap: () => {
+        const token = this.tokens[index]!;
+        if (token.region >= 0) this.move(index, -1);
+        else this.pick(this.picked === index ? -1 : index);
+      },
+      onDrop: (point) => {
+        this.move(index, this.options.regionAt(point));
+        return true;
+      }
+    });
+    this.updateLabel(index);
+  }
+
+  /** Región de cada ficha, en el orden en que se agregaron (-1 = fuera). */
+  get regions(): number[] {
+    return this.tokens.map((token) => token.region);
+  }
+
+  /** Fichas de cada una de las `count` regiones. */
+  groups(count: number): number[][] {
+    return Array.from({ length: count }, (_, region) => this.tokens.flatMap((token, index) => (token.region === region ? [index] : [])));
+  }
+
+  /** Coloca cada ficha en la región indicada (para mostrar la respuesta). */
+  place(regions: readonly number[]): void {
+    this.pick(-1);
+    this.tokens.forEach((token, index) => (token.region = regions[index] ?? -1));
+    this.layout();
+  }
+
+  /** Devuelve a su lugar las fichas indicadas, con una sacudida. */
+  reject(indices: readonly number[]): void {
+    for (const index of indices) {
+      const token = this.tokens[index]!;
+      token.element.classList.remove("is-shaking");
+      void token.element.offsetWidth;
+      token.element.classList.add("is-shaking");
+      token.region = -1;
+    }
+    window.setTimeout(() => this.layout(), 450);
+  }
+
+  highlight(indices: readonly number[]): void {
+    this.tokens.forEach((token, index) => token.element.classList.toggle("is-answer", indices.includes(index)));
+  }
+
+  reset(): void {
+    this.place([]);
+  }
+
+  private pick(index: number): void {
+    this.picked = index;
+    this.tokens.forEach((token, i) => token.element.classList.toggle("is-picked", i === index));
+  }
+
+  private move(index: number, region: number): void {
+    this.pick(-1);
+    this.tokens[index]!.region = region;
+    this.layout();
+    this.options.onChange?.();
+  }
+
+  private layout(): void {
+    const byRegion = new Map<number, number[]>();
+    this.tokens.forEach((token, index) => {
+      if (token.region >= 0) byRegion.set(token.region, [...(byRegion.get(token.region) ?? []), index]);
+    });
+    const slots = new Map([...byRegion].map(([region, members]) => [region, this.options.slots(region, members.length)]));
+    this.tokens.forEach((token, index) => {
+      const placed = token.region >= 0;
+      token.element.classList.toggle("is-placed", placed);
+      if (placed) placeAt(token.element, slots.get(token.region)![byRegion.get(token.region)!.indexOf(index)]!, this.options.zoneScale);
+      else placeAt(token.element, token.home);
+      this.updateLabel(index);
+    });
+  }
+
+  private updateLabel(index: number): void {
+    this.tokens[index]!.element.setAttribute("aria-pressed", String(this.tokens[index]!.region >= 0));
   }
 }

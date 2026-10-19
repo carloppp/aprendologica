@@ -18,6 +18,9 @@ const SHAPES: Record<PieceShape, string> = {
   circle: "M0,-38 A38 38 0 1 1 0,38 A38 38 0 1 1 0,-38 Z"
 };
 
+/** Trazo de cada forma, centrado en el origen y de unos 80 px de lado. */
+export const SHAPE_PATHS: Readonly<Record<PieceShape, string>> = SHAPES;
+
 /** Pieza vectorial brillante, centrada en un cuadro de `size` píxeles. */
 export function pieceSvg(piece: Piece, size: number): SVGSVGElement {
   const palette = PIECE_PALETTE[piece.color];
@@ -73,4 +76,23 @@ export function filterName(filter: PieceFilter): LocalizedText {
   if (filter.shape) return { es: SHAPE_NAMES[filter.shape].esPlural, en: SHAPE_NAMES[filter.shape].enPlural };
   const color = COLOR_NAMES[filter.color!];
   return { es: `lo ${color.es[0]}`, en: `${color.en} things` };
+}
+
+/** Plural de un color en español: "amarillas", "azules". */
+function colorPlural(color: PieceColor, feminine: boolean): string {
+  const singular = COLOR_NAMES[color].es[feminine ? 1 : 0];
+  return singular.endsWith("l") ? `${singular}es` : `${singular}s`;
+}
+
+/**
+ * Descripción de un conjunto por comprensión, para leer entre llaves: "estrellas", "piezas azules",
+ * "círculos amarillos" (DESCRIBE EL CONJUNTO).
+ */
+export function describeName(filter: PieceFilter): LocalizedText {
+  if (filter.shape) {
+    const shape = SHAPE_NAMES[filter.shape];
+    if (!filter.color) return { es: shape.esPlural, en: shape.enPlural };
+    return { es: `${shape.esPlural} ${colorPlural(filter.color, shape.feminine)}`, en: `${COLOR_NAMES[filter.color].en} ${shape.enPlural}` };
+  }
+  return { es: `piezas ${colorPlural(filter.color!, true)}`, en: `${COLOR_NAMES[filter.color!].en} pieces` };
 }

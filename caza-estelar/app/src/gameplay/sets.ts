@@ -1,4 +1,4 @@
-import type { Piece, PieceFilter } from "../content/model";
+import type { Piece, PieceAttribute, PieceFilter, SetClass } from "../content/model";
 
 /**
  * Reglas de las mecánicas de conjuntos. Las respuestas correctas se derivan del contenido, así el
@@ -57,6 +57,86 @@ export function union(a: readonly Piece[], b: readonly Piece[]): Piece[] {
 
 export function difference(a: readonly Piece[], b: readonly Piece[]): Piece[] {
   return vennRegions(a, b).onlyA;
+}
+
+/** Cuántos grupos salen al juntar las piezas por `by` (FORMAR CONJUNTOS). */
+export function groupCount(pieces: readonly Piece[], by: PieceAttribute): number {
+  return new Set(pieces.map((piece) => piece[by])).size;
+}
+
+/**
+ * FORMAR CONJUNTOS: el reparto es correcto si están todas las piezas y los grupos son exactamente
+ * los que salen al juntarlas por forma o por color (cada grupo comparte una característica).
+ */
+export function isValidGrouping(pieces: readonly Piece[], groups: readonly (readonly number[])[]): boolean {
+  const placed = groups.flat();
+  if (placed.length !== pieces.length || new Set(placed).size !== pieces.length) return false;
+  const filled = groups.filter((group) => group.length > 0);
+  return (["shape", "color"] as const).some((by) => {
+    const values = filled.map((group) => new Set(group.map((i) => pieces[i]![by])));
+    return values.every((it) => it.size === 1) && new Set(values.map((it) => [...it][0])).size === filled.length;
+  });
+}
+
+/**
+ * Piezas mal agrupadas en FORMAR CONJUNTOS: las que no comparten la característica de la mayoría de
+ * su aro, por forma o por color (lo que deje menos errores). Si dos aros juntan la misma
+ * característica, sobra el más pequeño. Las piezas sin colocar no cuentan.
+ */
+export function groupingMistakes(pieces: readonly Piece[], groups: readonly (readonly number[])[]): number[] {
+  const byLargest = groups.filter((group) => group.length > 0).sort((a, b) => b.length - a.length);
+  const mistakesBy = (by: PieceAttribute) => {
+    const taken = new Set<string>();
+    return byLargest.flatMap((group) => {
+      const counts = new Map<string, number>();
+      group.forEach((i) => counts.set(pieces[i]![by], (counts.get(pieces[i]![by]) ?? 0) + 1));
+      const majority = [...counts].sort((a, b) => b[1] - a[1])[0]![0];
+      if (taken.has(majority)) return [...group];
+      taken.add(majority);
+      return group.filter((i) => pieces[i]![by] !== majority);
+    });
+  };
+  const byShape = mistakesBy("shape");
+  const byColor = mistakesBy("color");
+  return byColor.length < byShape.length ? byColor : byShape;
+}
+
+/** Grupos de la respuesta de FORMAR CONJUNTOS: índices de las piezas juntadas por `by`. */
+export function groupAnswer(pieces: readonly Piece[], by: PieceAttribute): number[][] {
+  const groups = new Map<string, number[]>();
+  pieces.forEach((piece, index) => groups.set(piece[by], [...(groups.get(piece[by]) ?? []), index]));
+  return [...groups.values()];
+}
+
+/** Región del diagrama de Venn donde va una pieza (ELEMENTOS Y DIAGRAMAS); `b` nulo es un solo conjunto. */
+export type DiagramRegion = "a" | "both" | "b" | "none";
+
+export function diagramRegion(piece: Piece, a: PieceFilter, b: PieceFilter | null): DiagramRegion {
+  const inA = matches(piece, a);
+  const inB = b !== null && matches(piece, b);
+  return inA && inB ? "both" : inA ? "a" : inB ? "b" : "none";
+}
+
+/** Elementos de un conjunto dibujado, escritos una sola vez (ENTRE LLAVES). */
+export function elementsOf(set: readonly Piece[]): Piece[] {
+  return distinct(set);
+}
+
+/** Opciones de DESCRIBE EL CONJUNTO que cumplen todos los elementos; el contenido válido tiene una. */
+export function describeAnswer(set: readonly Piece[], options: readonly PieceFilter[]): number[] {
+  return indicesWhere(options, (option) => set.length > 0 && set.every((piece) => matches(piece, option)));
+}
+
+/** Clase de un conjunto (CLASES DE CONJUNTOS): las piezas iguales cuentan como un solo elemento. */
+export function setClass(set: readonly Piece[], infinite: boolean): SetClass {
+  if (infinite) return "infinite";
+  const count = distinct(set).length;
+  return count === 0 ? "empty" : count === 1 ? "unit" : "finite";
+}
+
+/** Resultado de UNIÓN E INTERSECCIÓN. */
+export function operationResult(op: "union" | "intersection", a: readonly Piece[], b: readonly Piece[]): Piece[] {
+  return op === "union" ? union(a, b) : vennRegions(a, b).both;
 }
 
 /** Igualdad de conjuntos de elementos, sin importar el orden. */

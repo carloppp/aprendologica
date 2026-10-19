@@ -3,10 +3,18 @@ import type { Piece } from "../content/model";
 import { RoundSession } from "./roundSession";
 import {
   contains,
+  describeAnswer,
+  diagramRegion,
   difference,
+  elementsOf,
+  groupAnswer,
+  groupingMistakes,
   hasDistinctElements,
   intersectionAnswer,
+  isValidGrouping,
+  operationResult,
   sameElements,
+  setClass,
   sameIndices,
   selectAnswer,
   subsetGroups,
@@ -55,6 +63,50 @@ describe("set rules", () => {
     expect(sameElements([star], [star, moon])).toBe(false);
     expect(sameIndices([2, 0], [0, 2])).toBe(true);
     expect(sameIndices([0], [0, 2])).toBe(false);
+  });
+});
+
+describe("new CONJUNTOS levels", () => {
+  // Estrella amarilla, estrella azul, luna celeste, círculo azul.
+  const table = [star, blueStar, moon, blueCircle];
+
+  it("accepts a grouping by shape or by color, with every piece placed", () => {
+    expect(isValidGrouping(table, [[0, 1], [2], [3]])).toBe(true);
+    expect(isValidGrouping(table, [[0], [1, 3], [2]])).toBe(true);
+    expect(isValidGrouping(table, [[0, 1], [2, 3]])).toBe(false);
+    expect(isValidGrouping(table, [[0, 1], [2]])).toBe(false);
+    // Dos aros con la misma característica no forman conjuntos distintos.
+    expect(isValidGrouping([star, star, moon], [[0], [1], [2]])).toBe(false);
+    expect(groupAnswer(table, "color")).toEqual([[0], [1, 3], [2]]);
+  });
+
+  it("points at the misplaced pieces of a grouping", () => {
+    expect(groupingMistakes(table, [[0, 1, 2], [3]])).toEqual([2]);
+    expect(groupingMistakes(table, [[0, 1], [2], [3]])).toEqual([]);
+  });
+
+  it("finds the region of each piece in the diagram", () => {
+    const yellow = { shape: null, color: "yellow" } as const;
+    const stars = { shape: "star", color: null } as const;
+    expect([star, blueStar, { shape: "moon", color: "yellow" } as Piece, moon].map((it) => diagramRegion(it, yellow, stars))).toEqual(["both", "b", "a", "none"]);
+    expect(diagramRegion(blueStar, stars, null)).toBe("a");
+  });
+
+  it("writes each element once and classifies sets", () => {
+    expect(elementsOf([star, moon, star])).toEqual([star, moon]);
+    expect(setClass([], false)).toBe("empty");
+    expect(setClass([star, star], false)).toBe("unit");
+    expect(setClass([star, moon], false)).toBe("finite");
+    expect(setClass([star, moon], true)).toBe("infinite");
+  });
+
+  it("describes a set by the property all its elements share", () => {
+    expect(describeAnswer([star, blueStar], [{ shape: null, color: "blue" }, { shape: "star", color: null }])).toEqual([1]);
+  });
+
+  it("solves union and intersection", () => {
+    expect(operationResult("union", [star, moon], [moon, gem])).toEqual([star, moon, gem]);
+    expect(operationResult("intersection", [star, moon], [moon, gem])).toEqual([moon]);
   });
 });
 

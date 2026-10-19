@@ -1,12 +1,12 @@
 import { validateCatalogWithLevels } from "./catalogValidator";
-import { SET_MECHANICS, type ContentCatalog, type ValidationIssue } from "./model";
+import { PATTERN_MECHANICS, SET_MECHANICS, SORT_MECHANICS, type ContentCatalog, type ValidationIssue } from "./model";
 import { parseCatalog } from "./parser";
 
 /**
  * Mecánicas instaladas en esta versión. `telescope_hunt` sigue en el contrato, pero su pantalla
  * todavía no se portó a la app TypeScript; los niveles con esa mecánica se rechazan al validar.
  */
-export const INSTALLED_MECHANICS: ReadonlySet<string> = new Set(["multiple_choice", ...SET_MECHANICS]);
+export const INSTALLED_MECHANICS: ReadonlySet<string> = new Set(["multiple_choice", ...SET_MECHANICS, ...PATTERN_MECHANICS, ...SORT_MECHANICS]);
 
 export type CatalogLoadResult =
   | { ok: true; catalog: ContentCatalog }

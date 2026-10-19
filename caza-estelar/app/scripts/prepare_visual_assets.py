@@ -2,13 +2,20 @@
 
 Uso (desde caza-estelar/app):
     python -I scripts/prepare_visual_assets.py ../../guia-visual-2d public/assets
+    python -I scripts/prepare_visual_assets.py ../../guia-visual-2d public/assets clasificacion
+
+Con `clasificacion` solo se preparan los recursos del kit de CLASIFICACIÓN (fondos, piezas, zonas
+y tarjetas), leídos directamente de `assets/assets-y-fondos-clasificacion-v1.zip`, y las poses de
+`personajes/poses-clasificacion-v1.zip`.
 
 Solo depende de Pillow. Recorta personajes y caras sobre fondo claro, separa el logo de su
 fondo blanco y reescala los escenarios al escenario lógico de 1920x1080. Las guías completas
 no se copian al runtime.
 """
 
+import io
 import sys
+import zipfile
 from collections import deque
 from pathlib import Path
 
@@ -202,30 +209,295 @@ def app_icon(isotipo, size, padding):
     return icon
 
 
-# Poses recortadas (personajes/poses). Todas comparten la escala del dibujo original, así que se
-# reducen con un factor fijo por personaje: la altura de pie coincide con la del sprite base.
-POSES = {"celebrando": "celebrating", "corriendo": "running", "ficha": "holding", "pensando": "thinking", "senalando": "pointing"}
+# Poses recortadas (personajes/poses). Se reducen con un factor por personaje y luego se igualan
+# por el tamaño de la cabeza (ver prepare_poses).
+POSES = {
+    "celebrando": "celebrating",
+    "corriendo": "running",
+    "ficha": "holding",
+    "pensando": "thinking",
+    "senalando": "pointing",
+    # Segunda tanda (entregables/assets-stella-luma-nuevas-poses-sin-contorno-v2.zip).
+    "aplaudiendo": "clapping",
+    "ordenando": "arranging",
+    "preguntando": "asking",
+    "observando": "observing",
+    "presentando": "presenting",
+    "saludando": "waving",
+}
 POSE_SCALE = {"stella": 540 / 1374, "luma": 520 / 1448}
+# Tamaño de la cabeza (px de salida) al que se lleva cada pose, para que no cambie de tamaño.
+HEAD_SIZE = {"stella": 278, "luma": 230}
+# Medición manual donde el brazo toca la cabeza y engaña a la automática.
+HEAD_OVERRIDE = {"stella-celebrating": 264, "stella-thinking": 286}
+
+
+def _alpha_runs(image):
+    alpha = image.getchannel("A").point(lambda v: 255 if v > 128 else 0)
+    width, height = alpha.size
+    px = alpha.load()
+    return [{x for x in range(width) if px[x, y]} for y in range(height)], height
+
+
+def _run_through(row, x):
+    if x not in row:
+        return None
+    left = right = x
+    while left - 1 in row:
+        left -= 1
+    while right + 1 in row:
+        right += 1
+    return left, right
+
+
+def measure_head(image, who):
+    """Ancho de la cabeza y su centro horizontal, siguiendo la silueta desde la punta superior.
+
+    Luma: la cabeza es un círculo; el radio sale del arco superior (r = (w² + d²) / 2d).
+    Stella: la cabeza es una estrella; su ancho es el de las puntas laterales (primer máximo).
+    """
+    rows, height = _alpha_runs(image)
+    top = next(y for y in range(height) if rows[y])
+    xs = [x for y in range(top, top + 4) for x in rows[y]]
+    center = round(sum(xs) / len(xs))
+    profile = []
+    for y in range(top, top + int(height * 0.7)):
+        run = _run_through(rows[y], center)
+        if not run:
+            break
+        profile.append(run)
+        center = (run[0] + run[1]) // 2
+    if who == "luma":
+        estimates = sorted(((((r - l) / 2) ** 2 + d * d) / (2 * d)) for d, (l, r) in ((d, profile[d]) for d in range(12, 70, 4)))
+        left, right = profile[20]
+        return 2 * estimates[len(estimates) // 2], (left + right) / 2
+    widths = [r - l for l, r in profile]
+    best = 0
+    for i, width in enumerate(widths):
+        if width > widths[best]:
+            best = i
+        if i > best + 6 and width < widths[best] * 0.8:
+            break
+    left, right = profile[best]
+    return widths[best], (left + right) / 2
+
+
+BRIDGE_POSES = {
+    "stella-cruce/stella-01-preparada.png": "ready",
+    "stella-cruce/stella-02-paso-izquierdo.png": "step-left",
+    "stella-cruce/stella-03-paso-derecho.png": "step-right",
+    "stella-cruce/stella-04-equilibrio.png": "balance",
+    "stella-cruce/stella-05-salto.png": "jump",
+    "stella-cruce/stella-06-llegada.png": "arrive",
+    "luma-apoyo/luma-01-ofrece-pieza.png": "offer",
+    "luma-apoyo/luma-02-da-pista.png": "hint",
+    "luma-apoyo/luma-03-celebra.png": "cheer",
+}
 
 
 def prepare_poses(folder, out):
+    """Todas las poses de un personaje salen en el mismo lienzo: misma escala de cabeza, cabeza
+    centrada en horizontal y pies sobre el borde inferior. Así, al cambiar de pose, el personaje
+    no cambia de tamaño ni se desplaza (y el reflejo horizontal gira alrededor de la cabeza)."""
+    placed = {}
+    sources = []
     for source in sorted(folder.glob("*.png")):
         who, rest = source.stem.split("-", 1)
-        pose = POSES[rest.split("-")[0]]
+        sources.append((source, who, POSES[rest.split("-")[0]]))
+    # Poses del puente de PATRONES (entregables/personajes-patrones-puente-v1.zip).
+    bridge = folder.parent / "poses-patrones-puente"
+    for relative, pose in BRIDGE_POSES.items():
+        if (bridge / relative).is_file():
+            sources.append((bridge / relative, relative.split("/")[-1].split("-")[0], pose))
+    for source, who, pose in sources:
         image = Image.open(source).convert("RGBA")
+        # Recorte por la silueta visible: los píxeles casi transparentes no cuentan (así los pies
+        # quedan sobre el borde inferior).
+        image = image.crop(image.getchannel("A").point(lambda v: 255 if v > 40 else 0).getbbox())
+        base = POSE_SCALE[who]
+        preview = image.resize((round(image.width * base), round(image.height * base)), Image.LANCZOS)
+        head, center = measure_head(preview, who)
+        head = HEAD_OVERRIDE.get(f"{who}-{pose}", head)
+        factor = HEAD_SIZE[who] / head
+        sized = image.resize((round(image.width * base * factor), round(image.height * base * factor)), Image.LANCZOS)
+        placed.setdefault(who, []).append((pose, sized, center * factor))
+
+    for who, poses in placed.items():
+        half = max(max(cx, sized.width - cx) for _, sized, cx in poses)
+        canvas_size = (round(2 * half) + 4, max(sized.height for _, sized, _ in poses) + 2)
+        for pose, sized, cx in poses:
+            canvas = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+            canvas.alpha_composite(sized, (round(canvas_size[0] / 2 - cx), canvas_size[1] - sized.height))
+            target = out / f"characters/poses/{who}-{pose}.webp"
+            target.parent.mkdir(parents=True, exist_ok=True)
+            canvas.save(target, quality=90, method=6)
+            print(f"{target}  {canvas_size}  {target.stat().st_size // 1024} KB")
+
+
+# Baldosas del puente de PATRONES: exactamente las de la guía 2D
+# (`assets/patrones-recuadros-uniformes-v2`), sin recolorear. Comparten lienzo, posición y ángulo,
+# así que se recortan con el mismo cuadro y siguen alineadas. La cara superior queda en (156, 108)
+# de cada imagen de 320 px.
+TILE_WIDTH = 320
+TILE_BOX = (448, 143, 1242, 798)
+PATTERN_TILES = {
+    "recuadro-estrella-amarillo": "tile-star-yellow",
+    "recuadro-circulo-celeste": "tile-circle-cyan",
+    "recuadro-rombo-morado": "tile-gem-purple",
+    "recuadro-incompleto-punteado": "tile-hole",
+    # Baldosa lisa que completa el puente hasta la isla, después del patrón.
+    "recuadro-base-gris": "tile-base",
+}
+
+
+def prepare_pattern_tiles(folder, out):
+    target = out / "patterns"
+    target.mkdir(parents=True, exist_ok=True)
+    for source, name in PATTERN_TILES.items():
+        image = Image.open(folder / f"{source}.png").convert("RGBA").crop(TILE_BOX)
+        image = image.resize((TILE_WIDTH, round(image.height * TILE_WIDTH / image.width)), Image.LANCZOS)
+        image.save(target / f"{name}.webp", quality=90, method=6)
+    print(f"{target}: baldosas de patrones")
+
+
+# Kit de CLASIFICACIÓN (guía 2D `assets/assets-y-fondos-clasificacion-v1.zip`).
+SORTING_KIT = "assets/assets-y-fondos-clasificacion-v1.zip"
+SORTING_BACKGROUND = "fondos/fondo-clasificacion-plataforma-v1.webp"
+# Zonas y tarjetas del kit sin texto: nombre de origen -> (nombre en runtime, ancho). CUMPLE/NO CUMPLE y
+# los selectores COLOR/FORMA/TAMAÑO traen el texto en español dentro de la imagen: la app los dibuja.
+# Los contenedores y las fichas salen de `SORTING_ART` (versión 2, 2026-10-15).
+SORTING_ZONES = {
+    "zonas/zona-forma-vacia": ("card-shape", 380),
+    "zonas/zona-grupo-vacia": ("card-group", 380),
+}
+SORT_PIECE_SIZE = 220
+# Contenedores y fichas versión 2 (elegidos por el responsable el 2026-10-15), con transparencia:
+# tres contenedores en fila y una cuadrícula de fichas (filas: amarillo, celeste, morado; columnas:
+# círculo, triángulo, cuadrado, estrella).
+SORTING_ART = "assets/clasificacion-v2"
+SORT_ART_COLORS = ["yellow", "cyan", "purple"]
+SORT_ART_SHAPES = ["circle", "triangle", "square", "star"]
+
+
+def _alpha_runs_1d(mask, axis):
+    """Tramos de columnas (axis=0) o filas (axis=1) con algo opaco."""
+    w, h = mask.size
+    hits = [i for i in range(w if axis == 0 else h) if mask.crop((i, 0, i + 1, h) if axis == 0 else (0, i, w, i + 1)).getbbox()]
+    runs = []
+    for i in hits:
+        if runs and i == runs[-1][1] + 1:
+            runs[-1][1] = i
+        else:
+            runs.append([i, i])
+    return runs
+
+
+def prepare_sorting_art(folder, out):
+    target = out / "sorting"
+    bins = Image.open(folder / "contenedores-v2.webp").convert("RGBA")
+    solid = bins.getchannel("A").point(lambda v: 255 if v > 60 else 0)
+    for color, (left, right) in zip(SORT_ART_COLORS, _alpha_runs_1d(solid, 0)):
+        cell = bins.crop((max(0, left - 20), 0, min(bins.width, right + 21), bins.height))
+        cell = cell.crop(cell.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox())
+        cell.resize((380, round(cell.height * 380 / cell.width)), Image.LANCZOS).save(target / f"bin-{color}.webp", quality=90, method=6)
+    pieces = Image.open(folder / "fichas-v2.webp").convert("RGBA")
+    solid = pieces.getchannel("A").point(lambda v: 255 if v > 60 else 0)
+    columns, rows = _alpha_runs_1d(solid, 0), _alpha_runs_1d(solid, 1)
+    # Una sola escala para todas: la celda más grande ocupa 200 de los 220 px del lienzo.
+    largest = max(max(r - l for l, r in columns), max(b - t for t, b in rows)) + 1
+    scale = 200 / largest
+    for color, (top, bottom) in zip(SORT_ART_COLORS, rows):
+        for shape, (left, right) in zip(SORT_ART_SHAPES, columns):
+            cell = pieces.crop((left, top, right + 1, bottom + 1))
+            cell = cell.resize((round(cell.width * scale), round(cell.height * scale)), Image.LANCZOS)
+            canvas = Image.new("RGBA", (SORT_PIECE_SIZE, SORT_PIECE_SIZE), (0, 0, 0, 0))
+            canvas.alpha_composite(cell, ((SORT_PIECE_SIZE - cell.width) // 2, (SORT_PIECE_SIZE - cell.height) // 2))
+            canvas.save(target / f"piece-{shape}-{color}.webp", quality=90, method=6)
+    print(f"{target}: contenedores y fichas v2")
+
+
+def prepare_sorting_kit(zip_path, out):
+    kit = zipfile.ZipFile(zip_path)
+    names = {Path(name).stem: name for name in kit.namelist() if name.endswith(".png")}
+    by_rel = {"/".join(Path(name).parts[-2:])[:-4]: name for name in kit.namelist() if name.endswith(".png")}
+    read = lambda name: Image.open(io.BytesIO(kit.read(name))).convert("RGBA")
+    # Fondo de los niveles: la plataforma central entre islas que eligió el responsable (2026-10-15),
+    # guardada en `fondos/`; los fondos del kit no tienen plataforma.
+    platform = zip_path.parent.parent / SORTING_BACKGROUND
+    if platform.is_file():
+        save_jpg(Image.open(platform), out / "images/bg-sorting.jpg")
+    target = out / "sorting"
+    target.mkdir(parents=True, exist_ok=True)
+    for source, (name, width) in SORTING_ZONES.items():
+        matches = [name for rel, name in by_rel.items() if rel == source or rel.startswith(source)]
+        image = read(matches[0])
         image = image.crop(image.getbbox())
-        size = (round(image.width * POSE_SCALE[who]), round(image.height * POSE_SCALE[who]))
-        target = out / f"characters/poses/{who}-{pose}.webp"
-        target.parent.mkdir(parents=True, exist_ok=True)
-        image.resize(size, Image.LANCZOS).save(target, quality=90, method=6)
-        print(f"{target}  {size}  {target.stat().st_size // 1024} KB")
+        image.resize((width, round(image.height * width / image.width)), Image.LANCZOS).save(target / f"{name}.webp", quality=90, method=6)
+    print(f"{target}: zonas y tarjetas de clasificación")
+    art = zip_path.parent / "clasificacion-v2"
+    if art.is_dir():
+        prepare_sorting_art(art, out)
+
+
+# Poses de CLASIFICACIÓN (guía 2D `personajes/poses-clasificacion-v1.zip`): una por nivel y personaje.
+SORTING_POSES = "personajes/poses-clasificacion-v1.zip"
+SORTING_POSE_NAMES = {
+    "01-iguales": "sort-type",
+    "02-por-color": "sort-color",
+    "03-por-forma": "sort-shape",
+    "04-por-tamano": "sort-size",
+    "05-dos-reglas": "sort-rule",
+    "06-crear-grupos": "sort-discover",
+}
+# Ancho de cabeza medido a ojo donde la pelota o las tarjetas junto a la cabeza engañan la
+# medición automática (px de la vista previa a `POSE_SCALE`). En "04-por-tamano" Stella sostiene una
+# estrella gigante: se deja la medición automática, que la deja más pequeña, como en el diseño.
+SORTING_POSES_SKIPPED = {"06-crear-grupos-stella"}
+# Poses corregidas que reemplazan a las del zip (mismo nombre, en .webp).
+SORTING_POSES_FIXED = "poses-clasificacion-ajustes"
+SORTING_HEAD_OVERRIDE = {"luma-03-por-forma": 232, "luma-05-dos-reglas": 242, "stella-01-iguales": 270}
+
+
+def prepare_sorting_poses(zip_path, out):
+    """Poses de clasificación con la misma escala de cabeza que las demás, en el mismo lienzo de cada
+    personaje (cabeza centrada y pies abajo). Si una pose no cabe, se achica hasta caber."""
+    kit = zipfile.ZipFile(zip_path)
+    for name in sorted(kit.namelist()):
+        if not name.endswith(".png"):
+            continue
+        stem = Path(name).stem
+        # Stella sentada con los grupos deja sus figuras flotando sobre la isla: no se usa.
+        if stem in SORTING_POSES_SKIPPED:
+            continue
+        level, who = stem.rsplit("-", 1)
+        canvas_size = Image.open(out / f"characters/poses/{who}-pointing.webp").size
+        # Una pose corregida en `poses-clasificacion-ajustes/` reemplaza a la del zip.
+        fixed = zip_path.parent / SORTING_POSES_FIXED / f"{stem}.webp"
+        image = Image.open(fixed if fixed.is_file() else io.BytesIO(kit.read(name))).convert("RGBA")
+        image = image.crop(image.getchannel("A").point(lambda v: 255 if v > 40 else 0).getbbox())
+        base = POSE_SCALE[who]
+        preview = image.resize((round(image.width * base), round(image.height * base)), Image.LANCZOS)
+        head, center = measure_head(preview, who)
+        head = SORTING_HEAD_OVERRIDE.get(f"{who}-{level}", head)
+        factor = base * HEAD_SIZE[who] / head
+        center = center / base
+        # Achica si se sale del lienzo: por arriba, o por un lado (la cabeza va al centro).
+        half = canvas_size[0] / 2 - 2
+        factor = min(factor, (canvas_size[1] - 2) / image.height, half / center, half / (image.width - center))
+        sized = image.resize((round(image.width * factor), round(image.height * factor)), Image.LANCZOS)
+        canvas = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+        canvas.alpha_composite(sized, (round(canvas_size[0] / 2 - center * factor), canvas_size[1] - sized.height))
+        target = out / f"characters/poses/{who}-{SORTING_POSE_NAMES[level]}.webp"
+        canvas.save(target, quality=90, method=6)
+        print(f"{target}  {canvas_size}  {target.stat().st_size // 1024} KB")
 
 
 def main(guide, out):
     open_ = lambda rel: Image.open(guide / rel).convert("RGB")
 
     scenes = {
-        "escenarios/observatory-login-stella-luma-v3-2d.webp": "images/bg-observatory.jpg",
+        # Fondo limpio (sin personajes) con la zona derecha libre para la tarjeta de acceso.
+        "fondos/fondo-observatorio-login-zona-segura-v2-4k.png": "images/bg-login.jpg",
         "escenarios/explorax-constellation-stella-luma-v2-2d.png": "images/bg-terrace.jpg",
         "escenarios/level-concept-constellation-celebration-v2-2d.png": "images/bg-celebration.jpg",
         "escenarios/level-observatory-room-v1-2d.webp": "images/bg-level.jpg",
@@ -254,6 +526,12 @@ def main(guide, out):
 
     if (guide / "personajes/poses").is_dir():
         prepare_poses(guide / "personajes/poses", out)
+    if (guide / "assets/patrones-recuadros-uniformes-v2").is_dir():
+        prepare_pattern_tiles(guide / "assets/patrones-recuadros-uniformes-v2", out)
+    if (guide / SORTING_KIT).is_file():
+        prepare_sorting_kit(guide / SORTING_KIT, out)
+    if (guide / SORTING_POSES).is_file():
+        prepare_sorting_poses(guide / SORTING_POSES, out)
 
     icons = out.parent / "icons"
     save_png(app_icon(isotipo, 192, 26), icons / "icon-192.png")
@@ -262,6 +540,10 @@ def main(guide, out):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
+    if len(sys.argv) == 4 and sys.argv[3] == "clasificacion":
+        prepare_sorting_kit(Path(sys.argv[1]) / SORTING_KIT, Path(sys.argv[2]))
+        prepare_sorting_poses(Path(sys.argv[1]) / SORTING_POSES, Path(sys.argv[2]))
+    elif len(sys.argv) == 3:
+        main(Path(sys.argv[1]), Path(sys.argv[2]))
+    else:
         sys.exit(__doc__)
-    main(Path(sys.argv[1]), Path(sys.argv[2]))

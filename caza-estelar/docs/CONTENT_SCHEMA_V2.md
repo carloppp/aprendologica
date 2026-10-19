@@ -42,6 +42,7 @@ catálogo
         ├── version: entero, sube al cambiar contenido, mecánica, requisitos o finalización
         ├── order: entero
         ├── title: { es, en }
+        ├── description: { es, en }   (opcional: de qué trata el nivel; se ve en el panel antes de jugar)
         ├── instruction: { es, en }
         ├── mechanic: { type, schemaVersion, config }
         ├── unlock: { prerequisiteLevelIds: string[] }
@@ -152,17 +153,36 @@ no contemple narración de voz por ahora.
 
 ### Mecánicas de conjuntos (`set_*`)
 
-Diseñadas a partir de la guía visual 2D (`guia-visual-2d/niveles/conjuntos-desarrollo/`). Un nivel
-tiene de 1 a 6 rondas. Comparten estos campos:
+Diseñadas a partir de la guía visual 2D (`guia-visual-2d/niveles/conjuntos-desarrollo/`). Comparten
+estos campos:
 
 ```json
 {
   "attempts": 1..3,
+  "roundsPerPlay": 1..6,
   "successFeedback": { "es": "...", "en": "..." },
   "retryFeedback": { "es": "...", "en": "..." },
-  "rounds": [ ... ]
+  "rounds": [ { ..., "difficulty": 1 | 2 | 3 } ]
 }
 ```
+
+**Banco de variantes (2026-10-14).** `rounds` es un banco de hasta 60 rondas y cada partida juega
+`roundsPerPlay` de ellas (máximo 6 y nunca más que el banco). Así dos estudiantes, o dos partidas
+seguidas, casi nunca reciben las mismas preguntas. Cada ronda lleva `difficulty`: 1 fácil, 2 media
+o 3 difícil; si falta, cuenta como 2. Sin `roundsPerPlay` se juega todo el banco en orden de
+dificultad, como en los catálogos anteriores.
+
+- **Sorteo** (`app/src/gameplay/roundPlan.ts`): la partida sigue una rampa de fácil a difícil. Con 4
+  rondas la rampa es 1, 2, 2, 3. En cada paso se elige al azar una ronda de esa dificultad, o de la
+  más cercana si no queda ninguna. Se evitan las rondas de la partida anterior del mismo nivel
+  mientras haya otras, y la app baraja la posición de las piezas de cada ronda.
+- **Validación adicional:** `difficulty` entre 1 y 3; `roundsPerPlay` entre 1 y el mínimo de 6 y el
+  tamaño del banco; ninguna ronda repite otra del banco (sin contar su dificultad).
+- **Generación:** los bancos de CONJUNTOS y PATRONES se generan con `app/scripts/generate_round_banks.py`. El
+  script usa una semilla fija y genera 12 rondas por dificultad (36 por nivel), con 4 por partida.
+  Fácil usa una sola propiedad y distractores claramente distintos. Media agrega más piezas.
+  Difícil usa distractores parecidos, que comparten forma o color con la respuesta, y conjuntos
+  más grandes.
 
 Una **pieza** es `{ "shape": "star" | "moon" | "gem" | "circle", "color": "yellow" | "cyan" | "purple" | "blue" | "pink" }`.
 Dos piezas con la misma forma y el mismo color son el **mismo elemento**. Una **propiedad**
@@ -179,11 +199,63 @@ Así el catálogo no puede publicar una respuesta que contradiga su propio conte
 | `set_subset` (SUBCONJUNTOS) | `set` (2-6), `groups` (2-3 conjuntos) | Coloca dentro el grupo que es subconjunto | Exactamente un grupo es subconjunto |
 | `set_intersection` (INTERSECCIÓN) | `a` y `b` (propiedades), `pieces` (2-7) | Lleva al centro del diagrama lo que cumple A y B | Al menos una pieza cumple A y B |
 | `set_union` (UNIÓN) | `a`, `b` (conjuntos) | Reúne en A ∪ B cada elemento una sola vez | — |
-| `set_difference` (DIFERENCIA) | `a`, `b` (conjuntos) | Lleva a la bandeja A − B lo que está en A y no en B | — |
+| `set_difference` (DIFERENCIA) | `a`, `b` (conjuntos) | Lleva a la bandeja A − B lo que está en A y no en B | A − B no queda vacío |
+| `set_group` (FORMAR CONJUNTOS) | `pieces` (4-8), `by` (`shape` o `color`) | Reparte todas las piezas en 2 o 3 aros, cada uno con una característica común | Las piezas forman 2 o 3 grupos por `by`; se acepta juntarlas por forma o por color |
+| `set_diagram` (ELEMENTOS Y DIAGRAMAS) | `a` (propiedad), `b` (propiedad o `null`), `pieces` (3-7) | Lleva cada pieza a su región del diagrama de Venn (A; o solo A, A y B, solo B); las demás se quedan fuera | Al menos una pieza en A, en B (si hay B) y fuera |
+| `set_braces` (ENTRE LLAVES) | `set` (1-8 piezas, pueden repetirse), `extra` (0-2) | Escribe A = { … } con cada elemento una sola vez | De 1 a 5 elementos distintos; `extra` no está en el conjunto |
+| `set_describe` (DESCRIBE EL CONJUNTO) | `set` (2-6), `options` (2-3 propiedades) | Elige la descripción por comprensión que cumplen todos los elementos | Exactamente una opción la cumplen todos |
+| `set_kind` (CLASES DE CONJUNTOS) | `set` (0-6), `infinite` | Decide si el conjunto es vacío, unitario, finito o infinito | Un conjunto infinito muestra de 2 a 4 piezas y sigue con «…» |
+| `set_operation` (UNIÓN E INTERSECCIÓN) | `op` (`union` o `intersection`), `a`, `b` (conjuntos) | Arma A ∪ B o A ∩ B con los elementos de A y de B | A ∩ B no queda vacío |
+
+Desde el 2026-10-15 los niveles siguen la estructura curricular acordada: `CONJUNTOS` usa `set_group`,
+`set_diagram`, `set_braces`, `set_describe`, `set_kind` y `set_operation`; `RELACIONES` usa por ahora
+`set_membership` (PERTENECE) y `set_subset` (SUBCONJUNTOS). `set_select`, `set_intersection`,
+`set_union` y `set_difference` siguen instaladas, pero el catálogo ya no las usa (DIFERENCIA queda como
+posible reto avanzado).
+
+### Mecánicas de patrones (`pattern_*`)
+
+Diseñadas a partir de la guía visual 2D (`guia-visual-2d/niveles/patrones-puente-nivel-v1.webp` y
+`navegacion/patrones-constellation-levels-v1.webp`), 2026-10-14. Las piezas son las baldosas de un
+puente hacia el portal. Comparten los campos de las mecánicas de conjuntos (`attempts`,
+`roundsPerPlay`, retroalimentación y banco `rounds` con `difficulty`). Las respuestas se derivan del
+contenido (`app/src/gameplay/patterns.ts`). Al acertar, Stella cruza el puente hasta el portal.
+
+| `type` | Niveles | Ronda | Qué hace el estudiante | Validación adicional |
+| --- | --- | --- | --- | --- |
+| `pattern_copy` | REPETIR | `sequence` (3-6), `extra` (0-2) | Copia el modelo en el puente, en el mismo orden | Al menos dos piezas distintas; `extra` no aparece en el modelo |
+| `pattern_fill` | ALTERNAR, COMPLETAR | `unit` (2-4), `length`, `blanks` (1-4), `extra` (0-2) | Llena los huecos del puente, que repite `unit` | `unit` con dos piezas distintas como mínimo y sin repetirse dentro de sí (A B A B no es unidad); `length` entre 2 × `unit` y 9; cada hueco se ve en otra repetición |
+| `pattern_spot` | DETECTAR | `unit`, `length` (hasta 8), `mistakes` (2) | Elige, entre tres caminos, el único que sigue el patrón | Cada error cambia una baldosa por otra pieza; los dos caminos con error son distintos |
+| `pattern_unit` | DESCUBRIR LA UNIDAD | `unit` (2-4), `length` (2 × `unit` a 9) | El puente está completo; elige, entre tres carteles (la unidad, una pieza más corta y una más larga), la parte que se repite | Las mismas reglas de `unit` que `pattern_fill` |
+| `pattern_create` | CREAR | `length` (4-8), `palette` (2-4) | Llena el puente con un patrón propio | Se acepta si una unidad de al menos dos piezas distintas se repite completa al menos dos veces |
+
+Las piezas de patrones son solo las tres baldosas de la guía: estrella amarilla, círculo celeste y rombo morado (`guia-visual-2d/assets/patrones-recuadros-uniformes-v2`, sin recolorear); el catálogo rechaza cualquier otra. La bandeja de `pattern_copy` y `pattern_fill` muestra cada pieza distinta una vez, en orden fijo
+por forma y color, para que su posición no delate la respuesta. En DETECTAR el camino correcto cae
+en un carril al azar.
+
+### Mecánicas de clasificación (`sort_*`)
+
+Diseñadas a partir de `guia-visual-2d/interfaz/niveles/imagenes-niveles-clasificacion-v1.zip` y del kit
+`guia-visual-2d/assets/assets-y-fondos-clasificacion-v1.zip` (2026-10-15). Usan su propia familia de piezas,
+las fichas v2 de `guia-visual-2d/assets/clasificacion-v2`: `{ "shape": "circle" | "triangle" | "square" | "star",
+"color": "yellow" | "cyan" | "purple", "size": "small" | "medium" | "large" }` (sin `size`, mediana). Los
+contenedores también son los v2. Comparten los campos de las
+mecánicas de conjuntos; las respuestas se derivan del contenido (`app/src/gameplay/sorting.ts`).
+
+| `type` | Niveles | Ronda | Qué hace el estudiante | Validación adicional |
+| --- | --- | --- | --- | --- |
+| `sort_groups` | COLOR, FORMA, TAMAÑO | `by` (`color`, `shape` o `size`), `pieces` (4-10) | Reparte cada pieza en el grupo de su color, forma o tamaño; se revisa sola al colocar la última | 2 o 3 grupos |
+| `sort_type` | TIPO | `items` (4-8 ids) | Reparte objetos en su familia (frutas, animales, útiles, vehículos); se revisa sola | Ids de `TYPE_ITEMS`, sin repetir; 2 o 3 familias |
+| `sort_rule` | DOS CARACTERÍSTICAS | `rule` (`shape` y `color`), `pieces` (4-7) | Separa en CUMPLE / NO CUMPLE; se comprueba con el botón | Hay piezas que cumplen y piezas que no |
+| `sort_discover` | DESCUBRE LA REGLA | `group` (3-5), `others` (0-3) | Elige COLOR o FORMA: la característica con que se formó el grupo; se revisa sola | Todas las piezas del mismo tamaño; el grupo comparte exactamente el color o la forma; `others` no la tiene |
+
+Los objetos de TIPO se dibujan por ahora con emoji (`TYPE_ITEMS.glyph`), porque el kit no trae
+ilustraciones de objetos. Los textos CUMPLE/NO CUMPLE y COLOR/FORMA/TAMAÑO del kit vienen dentro de
+las imágenes en español: la app los dibuja para poder traducirlos.
 
 Puntaje (`app/src/gameplay/roundSession.ts`): acierto al primer intento, 1 punto; acierto
 posterior, 0,5; intentos agotados, 0 y la app muestra la respuesta. `bestScore` es el porcentaje
-de puntos sobre el total de rondas; las estrellas usan los rangos de siempre (90, 60, 30).
+de puntos sobre el total de rondas jugadas en la partida; las estrellas usan los rangos de siempre (90, 60, 30).
 
 ```json
 {

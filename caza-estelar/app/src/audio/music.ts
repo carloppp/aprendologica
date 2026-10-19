@@ -4,7 +4,7 @@
  * consonante. Este módulo no toca Web Audio; solo decide qué notas suenan y cuándo.
  */
 
-export type MusicTheme = "sky" | "play" | "epic";
+export type MusicTheme = "sky" | "play" | "epic" | "observatory" | "islands";
 
 /** Nota MIDI en un tiempo del compás (0 = inicio; puede tener medios tiempos). */
 export interface BeatNote {
@@ -46,6 +46,15 @@ export interface ThemeDefinition {
   sparkleScale: number[];
   melodyNotes: [min: number, max: number];
   twinkles: [min: number, max: number];
+  /** Tiempos del bajo en cada compás (por defecto, solo el primero). */
+  bassBeats?: number[];
+  /**
+   * Acompañamiento: `arpeggio` corcheas que suben, `updown` corcheas que suben y bajan,
+   * `bounce` "um-pa-pa" (acorde en los tiempos débiles). Sin valor, no hay acompañamiento.
+   */
+  plucks?: "arpeggio" | "updown" | "bounce";
+  /** Timbre de melodía y acompañamiento: caja de música, campanas de cristal o flauta. */
+  voice?: "musicbox" | "bells" | "flute";
 }
 
 // Do mayor pentatónico: do, re, mi, sol, la. Cualquier combinación suena bien sobre los acordes.
@@ -85,7 +94,50 @@ export const THEMES: Record<MusicTheme, ThemeDefinition> = {
     scale: scaleFrom([72]),
     sparkleScale: scaleFrom([91]),
     melodyNotes: [0, 2],
-    twinkles: [0, 2]
+    twinkles: [0, 2],
+    bassBeats: [0, 2],
+    plucks: "arpeggio"
+  },
+  // Niveles de CONJUNTOS, en el observatorio: curioso y pensativo, como un laboratorio de estrellas.
+  // Acordes lidios (Cmaj7♯11, D/C, Em7, Bm7) con campanas de cristal que suben y bajan y muchos
+  // destellos, como el cielo del ventanal.
+  observatory: {
+    style: "soft",
+    bpm: 76,
+    beatsPerBar: 4,
+    chords: [
+      [48, 55, 62, 66, 71],
+      [48, 57, 62, 66, 69],
+      [40, 55, 59, 62, 67],
+      [47, 54, 59, 62, 66]
+    ],
+    // Sol mayor pentatónico (sol, la, si, re, mi): consonante sobre los cuatro acordes.
+    scale: scaleFrom([79]),
+    sparkleScale: scaleFrom([91, 103]),
+    melodyNotes: [0, 2],
+    twinkles: [1, 3],
+    plucks: "updown",
+    voice: "bells"
+  },
+  // Niveles de PATRONES, en las islas flotantes: juguetón y saltarín, en vals (3/4) y en fa mayor,
+  // con "um-pa-pa" de baldosas y una melodía de flauta (F, B♭, Gm7, C).
+  islands: {
+    style: "soft",
+    bpm: 108,
+    beatsPerBar: 3,
+    chords: [
+      [41, 53, 57, 60, 65],
+      [46, 53, 58, 62, 65],
+      [43, 55, 58, 62, 65],
+      [48, 55, 60, 64, 67]
+    ],
+    // Fa mayor pentatónico (fa, sol, la, do, re).
+    scale: scaleFrom([77]),
+    sparkleScale: scaleFrom([89]),
+    melodyNotes: [1, 3],
+    twinkles: [0, 1],
+    plucks: "bounce",
+    voice: "flute"
   },
   // Constelación: orquestal y épico (Dm, B♭, F, C). La primera nota de cada acorde es el contrabajo.
   epic: {
@@ -127,11 +179,18 @@ export function composeBar(theme: MusicTheme, index: number, random: () => numbe
 
   const root = chord[0]!;
   if (definition.style === "orchestra") return composeOrchestraBar(definition, chord, index, random, slots);
-  const bass: BeatNote[] = theme === "play" ? [{ beat: 0, midi: root - 12 }, { beat: 2, midi: root - 5 }] : [{ beat: 0, midi: root - 12 }];
+  // Bajo en la raíz; los demás tiempos del bajo, en la quinta de abajo.
+  const bass: BeatNote[] = (definition.bassBeats ?? [0]).map((beat, i) => ({ beat, midi: i === 0 ? root - 12 : root - 5 }));
+  const upper = chord.slice(1).map((midi) => midi + 12);
+  const updown = [...upper, ...upper.slice(1, -1).reverse()];
   const plucks: BeatNote[] =
-    theme === "play"
-      ? Array.from({ length: beats * 2 }, (_, i) => ({ beat: i / 2, midi: chord[1 + (i % (chord.length - 1))]! + 12 }))
-      : [];
+    definition.plucks === "arpeggio"
+      ? Array.from({ length: beats * 2 }, (_, i) => ({ beat: i / 2, midi: upper[i % upper.length]! }))
+      : definition.plucks === "updown"
+        ? Array.from({ length: beats * 2 }, (_, i) => ({ beat: i / 2, midi: updown[i % updown.length]! }))
+        : definition.plucks === "bounce"
+          ? Array.from({ length: beats - 1 }, (_, i) => [upper[0]!, upper[1]!].map((midi) => ({ beat: i + 1, midi }))).flat()
+          : [];
   const melody = slots(between(definition.melodyNotes, random)).map((beat) => ({
     beat,
     midi: pick(definition.scale, random),
